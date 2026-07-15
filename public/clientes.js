@@ -6,9 +6,24 @@ async function fetchJson(url) {
   return res.json()
 }
 
+function clientesLocaisFiltrados(busca) {
+  const locais = JSON.parse(localStorage.getItem('clientes-locais') || '[]')
+  if (!busca) return locais
+  const alvo = busca.toLowerCase()
+  return locais.filter(c => `${c.razaoSocial} ${c.nomeFantasia} ${c.cnpj} ${c.cidade}`.toLowerCase().includes(alvo))
+}
+
 async function renderTabela() {
   const params = new URLSearchParams(state.filters)
-  const clientes = await fetchJson(`/api/clientes?${params.toString()}`)
+  let clientes
+  try {
+    clientes = await fetchJson(`/api/clientes?${params.toString()}`)
+  } catch (e) {
+    // Sem back-end disponível (ex: versão publicada no GitHub Pages) — mostra
+    // só os cadastros salvos neste navegador.
+    clientes = []
+  }
+  clientes = clientes.concat(clientesLocaisFiltrados(state.filters.busca))
   const tbody = document.getElementById('clientes-tbody')
   document.getElementById('clientes-count-badge').textContent = `${clientes.length} cliente${clientes.length !== 1 ? 's' : ''}`
 
