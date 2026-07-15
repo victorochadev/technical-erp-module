@@ -41,11 +41,24 @@ async function salvarCliente() {
     site: document.getElementById('input-site').value,
   }
 
-  const cliente = await fetch('/api/clientes', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  }).then(r => r.json())
+  let cliente
+  try {
+    const res = await fetch('/api/clientes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) throw new Error('Falha ao salvar no servidor')
+    cliente = await res.json()
+  } catch (e) {
+    // Sem back-end disponível (ex: versão publicada no GitHub Pages, que só
+    // serve arquivos estáticos) — guarda o cadastro no navegador para a lista
+    // de Clientes conseguir exibi-lo mesmo assim.
+    cliente = { id: `local-${Date.now()}`, ...payload }
+    const locais = JSON.parse(localStorage.getItem('clientes-locais') || '[]')
+    locais.push(cliente)
+    localStorage.setItem('clientes-locais', JSON.stringify(locais))
+  }
 
   showToast(`Cliente "${cliente.nomeFantasia}" salvo.`)
   setTimeout(() => { window.location.href = 'clientes.html' }, 1200)
