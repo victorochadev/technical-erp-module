@@ -274,4 +274,35 @@ async function buscarClientePorId(id) {
   return CLIENTES.find(c => c.id === Number(id)) || null
 }
 
-module.exports = { buscarClientesPorNome, buscarClientePorId, CLIENTES }
+async function listClientes({ busca } = {}) {
+  return [...CLIENTES].sort((a, b) => a.nomeFantasia.localeCompare(b.nomeFantasia)).filter(c => {
+    if (!busca) return true
+    const alvo = busca.toLowerCase()
+    return `${c.razaoSocial} ${c.nomeFantasia} ${c.cnpj} ${c.cidade}`.toLowerCase().includes(alvo)
+  })
+}
+
+async function criarCliente(dados) {
+  const maiorId = CLIENTES.reduce((max, c) => Math.max(max, c.id), 0)
+  const novo = {
+    id: maiorId + 1,
+    razaoSocial: dados.razaoSocial || '',
+    nomeFantasia: dados.nomeFantasia || dados.razaoSocial || '',
+    cnpj: dados.cnpj || '',
+    ie: dados.ie || '',
+    endereco: dados.endereco || '',
+    cep: dados.cep || '',
+    bairro: dados.bairro || '',
+    cidade: dados.cidade || '',
+    complemento: dados.complemento || '',
+    contato: dados.contato || '',
+    telefone: dados.telefone || '',
+    celular: dados.celular || '',
+    email: dados.email || '',
+    site: dados.site || '',
+  }
+  CLIENTES.push(novo)
+  return novo
+}
+
+module.exports = { buscarClientesPorNome, buscarClientePorId, listClientes, criarCliente, CLIENTES }

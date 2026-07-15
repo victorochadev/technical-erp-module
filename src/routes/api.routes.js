@@ -6,6 +6,7 @@ const catalogoRepo = require('../data/catalogoRepository')
 const instalacoesRepo = require('../data/instalacoesRepository')
 const laboratorioRepo = require('../data/laboratorioRepository')
 const requisicoesRepo = require('../data/requisicoesRepository')
+const tecnicosTerceirizadosRepo = require('../data/tecnicosTerceirizadosRepository')
 
 const router = express.Router()
 
@@ -39,6 +40,15 @@ router.get('/dashboard/resumo', async (req, res) => {
 
 router.get('/dashboard/por-tecnico', async (req, res) => {
   res.json(await dashboardService.getRankingPorTecnico(req.query.mes))
+})
+
+router.get('/clientes', async (req, res) => {
+  res.json(await clientesRepo.listClientes({ busca: req.query.busca }))
+})
+
+router.post('/clientes', async (req, res) => {
+  const cliente = await clientesRepo.criarCliente(req.body)
+  res.status(201).json(cliente)
 })
 
 router.get('/clientes/busca', async (req, res) => {
@@ -132,6 +142,21 @@ router.put('/requisicoes/:id', async (req, res) => {
   const requisicao = await requisicoesRepo.atualizarRequisicao(req.params.id, req.body)
   if (!requisicao) return res.status(404).json({ erro: 'Requisição não encontrada' })
   res.json(requisicao)
+})
+
+router.get('/tecnicos-terceirizados', async (req, res) => {
+  res.json(await tecnicosTerceirizadosRepo.listTecnicosTerceirizados({ busca: req.query.busca }))
+})
+
+router.get('/tecnicos-terceirizados/:id', async (req, res) => {
+  const tecnico = await tecnicosTerceirizadosRepo.buscarTecnicoTerceirizadoPorId(req.params.id)
+  if (!tecnico) return res.status(404).json({ erro: 'Técnico terceirizado não encontrado' })
+  res.json(tecnico)
+})
+
+router.post('/tecnicos-terceirizados', async (req, res) => {
+  const tecnico = await tecnicosTerceirizadosRepo.criarTecnicoTerceirizado(req.body)
+  res.status(201).json(tecnico)
 })
 
 module.exports = router

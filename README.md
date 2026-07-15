@@ -10,7 +10,9 @@ npm install
 npm start
 ```
 
-Acesse `http://localhost:3300`. Os dados são **fictícios** (gerados em memória,
+Acesse `http://localhost:3300` — você vai cair na tela de **login**
+(`login.html`) antes de qualquer outra página. Credenciais em `login.js`
+(usuário `victor.rocha`). Os dados são **fictícios** (gerados em memória,
 ver `src/data/mockAtendimentos.js`), cobrindo maio, junho e julho de 2026.
 
 Telas no protótipo, navegáveis pelo menu lateral:
@@ -42,15 +44,51 @@ O protótipo funciona tanto em desktop quanto em celular/tablet. Abaixo de
 
 ## Menu lateral (sidebar)
 
-Réplica da barra lateral de ícones do ERP real. Ao passar o mouse sobre o
-ícone de chave (Área Técnica) abre um flyout com os submódulos:
-Atendimentos, Instalações, Visitas/Amostra, Laboratório, Wiki e Dashboard.
-Só **Atendimentos** e **Dashboard** são funcionais neste protótipo — os
-demais são placeholders (`href="#"`) e os rótulos são inferidos a partir do
-ícone, não confirmados com o ERP real. O ícone de carrinho (Vendas) também
-tem flyout, com um único item funcional: **Requisições** (ver seção abaixo).
-Os outros ícones da barra (aprovações, painel geral, perfil, clientes,
-produtos, ajuda) são só visuais.
+A sidebar tem só três ícones — **Cadastro**, **Vendas** e **Área Técnica** —,
+todos com flyout ao passar o mouse:
+- **Cadastro**: Clientes, Técnicos Terceirizados (ver seção abaixo).
+- **Vendas**: Requisições (ver seção abaixo).
+- **Área Técnica**: Atendimentos, Instalações, Visitas/Amostra, Laboratório,
+  Wiki e Dashboard. Só **Atendimentos**, **Instalações**, **Laboratório** e
+  **Dashboard** são funcionais — Visitas/Amostra e Wiki continuam
+  placeholders (`href="#"`).
+
+Os demais ícones do ERP real (aprovações, painel geral, perfil, indicadores,
+produtos, ajuda) foram removidos por não terem nenhuma função neste
+protótipo.
+
+## Login (`login.html`)
+
+Antes de qualquer tela, o protótipo pede usuário e senha. **Isso é uma
+proteção de demonstração, não segurança de verdade**: como é um site
+estático (sem sessão real no servidor), a credencial fica no próprio
+`login.js` e o "acesso liberado" é só uma flag no `localStorage`
+(`at-auth = 'ok'`) — qualquer um com o devtools aberto contorna isso. Serve
+para afastar visitantes casuais do link público, não para proteger dados
+sensíveis (aliás não há nenhum, os dados são todos mock).
+
+Todas as páginas, exceto `login.html`, têm um pequeno script no `<head>`
+que verifica essa flag e redireciona para `login.html` se não estiver
+presente. Para trocar a credencial, edite as constantes `USUARIO_VALIDO` e
+`SENHA_VALIDA` no topo de `login.js`.
+
+## Cadastro (`clientes.html` + `tecnicos-terceirizados.html`)
+
+Ícone de crachá da sidebar, com dois submódulos — listas simples (busca +
+botão "+"), sem edição, seguindo o mesmo padrão visual das outras telas:
+
+- **Clientes** (`clientes.html` + `novo-cliente.html`): lista todos os
+  clientes do mock (`src/data/clientesRepository.js`, mesma base usada nos
+  autocompletes de Atendimentos) com busca por razão social, nome fantasia,
+  CNPJ ou cidade. "+" abre um formulário completo (razão social, CNPJ, IE,
+  endereço, contato, telefone, e-mail, site) que grava de verdade via
+  `POST /api/clientes`.
+- **Técnicos Terceirizados** (`tecnicos-terceirizados.html` +
+  `novo-tecnico-terceirizado.html`): cadastro novo, separado da lista interna
+  de técnicos usada em Atendimentos/Laboratório/Requisições — representa
+  prestadores externos (nome, empresa terceirizada, especialidade, cidade,
+  contato). Mock em `src/data/tecnicosTerceirizadosRepository.js`, grava via
+  `POST /api/tecnicos-terceirizados`.
 
 ## Atendimentos (`atendimentos.html`)
 
@@ -311,12 +349,14 @@ src/
     instalacoesRepository.js        # mock de instalações (pedidos, produtos, custos, checklist)
     laboratorioRepository.js        # mock do quadro Kanban (cartões, colunas, mover, criar)
     requisicoesRepository.js        # mock de requisições (produtos, criar, buscar por vínculo)
+    tecnicosTerceirizadosRepository.js  # mock de técnicos terceirizados (cadastro)
   services/
     dashboardService.js            # agregações (resumo mensal, ranking por técnico)
   routes/
     api.routes.js                  # endpoints REST
 public/
   styles.css                        # estilos compartilhados (sidebar, cards, tabelas, tema claro/escuro)
+  login.html, login.css, login.js    # tela de login (proteção de demonstração)
   index.html, app.js                 # Dashboard de métricas
   atendimentos.html, atendimentos.css, atendimentos.js   # lista de atendimentos (abas Remoto/Presencial)
   novo-atendimento.html, atendimento-form.css, atendimento-form.js   # fluxo de criação/edição
@@ -326,6 +366,10 @@ public/
   laboratorio.html, laboratorio.css, laboratorio.js   # quadro Kanban de manutenção
   requisicoes.html, requisicoes.css, requisicoes.js   # lista de requisições (módulo Vendas)
   nova-requisicao.html, nova-requisicao.css, nova-requisicao.js   # criação/consulta de requisição
+  clientes.html, clientes.css, clientes.js            # lista de clientes (módulo Cadastro)
+  novo-cliente.html, novo-cliente.css, novo-cliente.js   # criação de cliente
+  tecnicos-terceirizados.html, tecnicos-terceirizados.css, tecnicos-terceirizados.js   # lista de técnicos terceirizados
+  novo-tecnico-terceirizado.html, novo-tecnico-terceirizado.css, novo-tecnico-terceirizado.js   # criação de técnico terceirizado
 ```
 
 ## Como integrar no ERP real
