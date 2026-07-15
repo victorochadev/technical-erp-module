@@ -1,16 +1,332 @@
 const state = { filters: { busca: '' } }
 
+// Cópia dos clientes mock (ver src/data/clientesRepository.js) usada só como
+// fallback quando não há back-end respondendo (ex: versão publicada no
+// GitHub Pages, que serve só arquivos estáticos). Se adicionar/editar
+// clientes no repositório, replicar aqui também.
+const SEED_CLIENTES = [
+  {
+    "id": 1,
+    "razaoSocial": "60.098.486 Rayanne Carolina Diniz Nascimento Da Silva",
+    "nomeFantasia": "60.098.486 Rayanne Carolina Diniz Nascimento Da Silva",
+    "cnpj": "60.098.486/0001-74",
+    "ie": "084949171",
+    "endereco": "Rua Santa Bárbara, 154",
+    "cep": "29143-322",
+    "bairro": "Centro",
+    "cidade": "Cariacica - ES",
+    "complemento": "",
+    "contato": "",
+    "telefone": "(27) 9858-4158",
+    "celular": "",
+    "email": "rayanne@taglike.com.br",
+    "site": ""
+  },
+  {
+    "id": 2,
+    "razaoSocial": "Oficina do Letreiro Comunicacao Visual Ltda",
+    "nomeFantasia": "Oficina do Letreiro",
+    "cnpj": "12.345.678/0001-90",
+    "ie": "110223344",
+    "endereco": "Av. Presidente Vargas, 980",
+    "cep": "15015-000",
+    "bairro": "Centro",
+    "cidade": "São José do Rio Preto - SP",
+    "complemento": "",
+    "contato": "Marcos Vieira",
+    "telefone": "(17) 3212-4455",
+    "celular": "(17) 99812-3344",
+    "email": "contato@oficinadoletreiro.com.br",
+    "site": ""
+  },
+  {
+    "id": 3,
+    "razaoSocial": "Beetle Press Ltda",
+    "nomeFantasia": "Beetle Press",
+    "cnpj": "23.456.789/0001-11",
+    "ie": "220334455",
+    "endereco": "Rua das Indústrias, 45",
+    "cep": "81290-000",
+    "bairro": "Distrito Industrial",
+    "cidade": "Curitiba - PR",
+    "complemento": "Galpão 3",
+    "contato": "",
+    "telefone": "(41) 3022-9981",
+    "celular": "",
+    "email": "financeiro@beetlepress.com.br",
+    "site": "https://beetlepress.com.br"
+  },
+  {
+    "id": 4,
+    "razaoSocial": "Grafica Central Ltda",
+    "nomeFantasia": "Grafica Central",
+    "cnpj": "34.567.890/0001-22",
+    "ie": "330445566",
+    "endereco": "Rua XV de Novembro, 220",
+    "cep": "89010-001",
+    "bairro": "Centro",
+    "cidade": "Blumenau - SC",
+    "complemento": "",
+    "contato": "",
+    "telefone": "(47) 3323-1010",
+    "celular": "",
+    "email": "atendimento@graficacentral.com.br",
+    "site": ""
+  },
+  {
+    "id": 5,
+    "razaoSocial": "Ponto Digital Informatica Ltda",
+    "nomeFantasia": "Ponto Digital",
+    "cnpj": "45.678.901/0001-33",
+    "ie": "440556677",
+    "endereco": "Av. Goiás, 1500",
+    "cep": "74005-010",
+    "bairro": "Setor Central",
+    "cidade": "Goiânia - GO",
+    "complemento": "Sala 12",
+    "contato": "Fernanda Alves",
+    "telefone": "(62) 3241-7788",
+    "celular": "(62) 99841-2200",
+    "email": "suporte@pontodigital.com.br",
+    "site": ""
+  },
+  {
+    "id": 6,
+    "razaoSocial": "Imagine Graphics Impressao Digital Ltda",
+    "nomeFantasia": "Imagine Graphics",
+    "cnpj": "56.789.012/0001-44",
+    "ie": "550667788",
+    "endereco": "Rua Voluntários da Pátria, 88",
+    "cep": "01139-000",
+    "bairro": "Centro",
+    "cidade": "São Paulo - SP",
+    "complemento": "",
+    "contato": "",
+    "telefone": "(11) 3299-6677",
+    "celular": "",
+    "email": "contato@imaginegraphics.com.br",
+    "site": "https://imaginegraphics.com.br"
+  },
+  {
+    "id": 7,
+    "razaoSocial": "Estamparia Textil De Ideias Ltda",
+    "nomeFantasia": "Textil De Ideias",
+    "cnpj": "67.890.123/0001-55",
+    "ie": "660778899",
+    "endereco": "Rua Amazonas, 310",
+    "cep": "15025-070",
+    "bairro": "Vila Nova",
+    "cidade": "São José do Rio Preto - SP",
+    "complemento": "",
+    "contato": "",
+    "telefone": "(17) 3234-5566",
+    "celular": "",
+    "email": "vendas@textildeideias.com.br",
+    "site": ""
+  },
+  {
+    "id": 8,
+    "razaoSocial": "Exato Rio Preto Comunicacao Visual Ltda",
+    "nomeFantasia": "Exato Rio Preto",
+    "cnpj": "78.901.234/0001-66",
+    "ie": "770889900",
+    "endereco": "Av. Alberto Andaló, 3300",
+    "cep": "15015-000",
+    "bairro": "Centro",
+    "cidade": "São José do Rio Preto - SP",
+    "complemento": "",
+    "contato": "",
+    "telefone": "(17) 3235-8899",
+    "celular": "",
+    "email": "atendimento@exatoriopreto.com.br",
+    "site": ""
+  },
+  {
+    "id": 9,
+    "razaoSocial": "C R Da Silva Impressoes Ltda",
+    "nomeFantasia": "C R Impressões",
+    "cnpj": "89.012.345/0001-77",
+    "ie": "880990011",
+    "endereco": "Rua Barão do Rio Branco, 512",
+    "cep": "80010-180",
+    "bairro": "Centro",
+    "cidade": "Curitiba - PR",
+    "complemento": "",
+    "contato": "",
+    "telefone": "(41) 3324-6655",
+    "celular": "",
+    "email": "crsilva@impressoes.com.br",
+    "site": ""
+  },
+  {
+    "id": 10,
+    "razaoSocial": "Fontes Crisostomo Comercio De Materiais Graficos Ltda",
+    "nomeFantasia": "Fontes Crisostomo",
+    "cnpj": "90.123.456/0001-88",
+    "ie": "990001122",
+    "endereco": "Rua João Pessoa, 77",
+    "cep": "89010-090",
+    "bairro": "Centro",
+    "cidade": "Blumenau - SC",
+    "complemento": "",
+    "contato": "",
+    "telefone": "(47) 3324-1122",
+    "celular": "",
+    "email": "compras@fontescrisostomo.com.br",
+    "site": ""
+  },
+  {
+    "id": 11,
+    "razaoSocial": "Alice Agape Comunicacao Visual Ltda",
+    "nomeFantasia": "Alice Agape",
+    "cnpj": "11.222.333/0001-99",
+    "ie": "111222333",
+    "endereco": "Rua das Palmeiras, 12",
+    "cep": "74815-010",
+    "bairro": "Centro",
+    "cidade": "Goiânia - GO",
+    "complemento": "",
+    "contato": "",
+    "telefone": "(62) 3245-9900",
+    "celular": "",
+    "email": "alice@agape.com.br",
+    "site": ""
+  },
+  {
+    "id": 12,
+    "razaoSocial": "We Love Fashion Estamparia Ltda",
+    "nomeFantasia": "We Love Fashion",
+    "cnpj": "22.333.444/0001-10",
+    "ie": "222333444",
+    "endereco": "Av. Brasil, 900",
+    "cep": "15025-100",
+    "bairro": "Jardim América",
+    "cidade": "São José do Rio Preto - SP",
+    "complemento": "",
+    "contato": "",
+    "telefone": "(17) 3236-4400",
+    "celular": "",
+    "email": "contato@welovefashion.com.br",
+    "site": ""
+  },
+  {
+    "id": 13,
+    "razaoSocial": "Maxi Copy Solucoes Digitais Ltda",
+    "nomeFantasia": "Maxi Copy",
+    "cnpj": "33.444.555/0001-21",
+    "ie": "333444555",
+    "endereco": "Rua Sete de Setembro, 240",
+    "cep": "80020-120",
+    "bairro": "Centro",
+    "cidade": "Curitiba - PR",
+    "complemento": "",
+    "contato": "",
+    "telefone": "(41) 3325-3300",
+    "celular": "",
+    "email": "maxicopy@solucoesdigitais.com.br",
+    "site": ""
+  },
+  {
+    "id": 14,
+    "razaoSocial": "Kw Estampas Ltda",
+    "nomeFantasia": "Kw Estampas",
+    "cnpj": "44.555.666/0001-32",
+    "ie": "444555666",
+    "endereco": "Rua Dois de Setembro, 65",
+    "cep": "89010-040",
+    "bairro": "Centro",
+    "cidade": "Blumenau - SC",
+    "complemento": "",
+    "contato": "",
+    "telefone": "(47) 3326-7700",
+    "celular": "",
+    "email": "kw@estampas.com.br",
+    "site": ""
+  },
+  {
+    "id": 15,
+    "razaoSocial": "Calich Grafica Digital Ltda",
+    "nomeFantasia": "Calich Grafica Digital",
+    "cnpj": "55.666.777/0001-43",
+    "ie": "555666777",
+    "endereco": "Av. T-7, 800",
+    "cep": "74210-030",
+    "bairro": "Setor Bueno",
+    "cidade": "Goiânia - GO",
+    "complemento": "",
+    "contato": "",
+    "telefone": "(62) 3247-1188",
+    "celular": "",
+    "email": "calich@graficadigital.com.br",
+    "site": ""
+  },
+  {
+    "id": 16,
+    "razaoSocial": "Crystal Águas",
+    "nomeFantasia": "Crystal Águas",
+    "cnpj": "222.222.222/0001-22",
+    "ie": "",
+    "endereco": "Rua das Amoras, 22",
+    "cep": "02020-000",
+    "bairro": "Vila Esperança",
+    "cidade": "São Paulo - SP",
+    "complemento": "",
+    "contato": "",
+    "telefone": "",
+    "celular": "",
+    "email": "",
+    "site": ""
+  },
+  {
+    "id": 17,
+    "razaoSocial": "Claude No-Code",
+    "nomeFantasia": "Claude No-Code",
+    "cnpj": "111.111.111/0002-11",
+    "ie": "",
+    "endereco": "Rua dos Pinhões, 13",
+    "cep": "03045-000",
+    "bairro": "Vila do Nunca",
+    "cidade": "São Paulo - SP",
+    "complemento": "",
+    "contato": "",
+    "telefone": "",
+    "celular": "",
+    "email": "",
+    "site": ""
+  },
+  {
+    "id": 18,
+    "razaoSocial": "Franco Carmélio Nunes",
+    "nomeFantasia": "Franco Carmélio Nunes",
+    "cnpj": "222.222.222-45",
+    "ie": "",
+    "endereco": "Rua Tancredo Neves Araújo, 45",
+    "cep": "03020-000",
+    "bairro": "Parque Edu Claudio",
+    "cidade": "São Paulo - SP",
+    "complemento": "",
+    "contato": "",
+    "telefone": "",
+    "celular": "",
+    "email": "",
+    "site": ""
+  }
+]
+
 async function fetchJson(url) {
   const res = await fetch(url)
   if (!res.ok) throw new Error(`Falha ao buscar ${url}`)
   return res.json()
 }
 
-function clientesLocaisFiltrados(busca) {
-  const locais = JSON.parse(localStorage.getItem('clientes-locais') || '[]')
-  if (!busca) return locais
+function filtrarClientes(lista, busca) {
+  if (!busca) return lista
   const alvo = busca.toLowerCase()
-  return locais.filter(c => `${c.razaoSocial} ${c.nomeFantasia} ${c.cnpj} ${c.cidade}`.toLowerCase().includes(alvo))
+  return lista.filter(c => `${c.razaoSocial} ${c.nomeFantasia} ${c.cnpj} ${c.cidade}`.toLowerCase().includes(alvo))
+}
+
+function clientesLocais() {
+  return JSON.parse(localStorage.getItem('clientes-locais') || '[]')
 }
 
 async function renderTabela() {
@@ -19,11 +335,10 @@ async function renderTabela() {
   try {
     clientes = await fetchJson(`/api/clientes?${params.toString()}`)
   } catch (e) {
-    // Sem back-end disponível (ex: versão publicada no GitHub Pages) — mostra
-    // só os cadastros salvos neste navegador.
-    clientes = []
+    // Sem back-end disponível — usa a cópia local dos dados mock.
+    clientes = filtrarClientes(SEED_CLIENTES, state.filters.busca)
   }
-  clientes = clientes.concat(clientesLocaisFiltrados(state.filters.busca))
+  clientes = clientes.concat(filtrarClientes(clientesLocais(), state.filters.busca))
   const tbody = document.getElementById('clientes-tbody')
   document.getElementById('clientes-count-badge').textContent = `${clientes.length} cliente${clientes.length !== 1 ? 's' : ''}`
 
