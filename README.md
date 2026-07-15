@@ -21,6 +21,25 @@ Telas no protótipo, navegáveis pelo menu lateral:
 - `instalacoes.html` — **Instalações**, lista de pedidos de venda com instalação técnica pendente
 - `instalacao-detalhes.html` — detalhe de uma instalação, com checklist de aprovação de fotos
 
+## Responsivo
+
+O protótipo funciona tanto em desktop quanto em celular/tablet. Abaixo de
+768px de largura:
+- A sidebar de ícones vira uma barra fixa **inferior**, em vez de lateral. Os
+  flyouts (que dependem de hover) ficam desativados no touch — cada ícone com
+  submenu (Vendas, Área Técnica) navega direto para a página principal do
+  módulo ao tocar.
+- Grids de 2/3 colunas (KPIs, formulários, checklist de instalação) colapsam
+  para 1 coluna; linhas flex (busca + filtros, ida/volta, produto+qtd+valor)
+  empilham verticalmente.
+- Tabelas mantêm todas as colunas e rolam horizontalmente dentro do próprio
+  cartão (`.table-wrapper { overflow-x: auto }`) em vez de esconder dados.
+- O calendário de atendimentos (`index.html`) e o quadro Kanban
+  (`laboratorio.html`) também rolam horizontalmente — o calendário mantém as
+  7 colunas de dia da semana com scroll, e o quadro mostra uma coluna cheia
+  por vez (mesmo padrão do Trello mobile). O modal de detalhes do cartão
+  empilha a coluna de informações e a de comentários.
+
 ## Menu lateral (sidebar)
 
 Réplica da barra lateral de ícones do ERP real. Ao passar o mouse sobre o
