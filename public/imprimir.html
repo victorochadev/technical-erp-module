@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>BM1 ERP</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; color: #1a1a1a; background: #e9e9e9; }
+  .page {
+    max-width: 900px; margin: 24px auto; background: #fff; padding: 32px 36px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.15);
+  }
+  .topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+  .logo-box {
+    width: 150px; height: 70px; background: #14151a; color: #fff; display: flex;
+    flex-direction: column; align-items: center; justify-content: center; border-radius: 4px; flex-shrink: 0;
+  }
+  .logo-box__nome { font-size: 1.3rem; font-weight: 700; letter-spacing: 0.01em; }
+  .logo-box__nome span { color: #e0607a; }
+  .logo-box__sub { font-size: 0.65rem; letter-spacing: 0.3em; color: #b7b7b7; margin-top: 2px; }
+
+  .empresa-info { flex: 1; font-size: 0.78rem; line-height: 1.5; }
+  .empresa-info__nome { font-weight: 700; font-size: 0.85rem; margin-bottom: 2px; }
+
+  .numero-data { text-align: right; font-size: 0.8rem; white-space: nowrap; }
+  .numero-data__numero { font-weight: 700; font-size: 0.95rem; }
+
+  .divisor { border: none; border-top: 1px dashed #999; margin: 14px 0; }
+
+  .section-title {
+    text-align: center; font-weight: 700; font-size: 0.85rem; text-transform: uppercase;
+    letter-spacing: 0.02em; margin: 4px 0;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 32px; font-size: 0.8rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px 32px; font-size: 0.8rem; }
+  .grid-2 div, .grid-3 div { line-height: 1.6; }
+  .grid-2 b, .grid-3 b { font-weight: 700; }
+
+  table.produtos { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 6px; }
+  table.produtos th { text-align: left; font-weight: 700; padding: 4px 6px; border-bottom: 1px solid #999; }
+  table.produtos td { padding: 6px; color: #888; }
+
+  .chamado-bloco { margin-top: 4px; }
+  .chamado-bloco__titulo { text-align: center; font-weight: 700; font-size: 0.8rem; background: #f2f2f2; padding: 3px; border: 1px solid #ccc; border-bottom: none; }
+  .chamado-bloco__texto { border: 1px solid #ccc; padding: 8px; font-size: 0.82rem; min-height: 20px; margin-bottom: 10px; }
+
+  .disclaimer { font-size: 0.78rem; line-height: 1.6; margin-top: 14px; }
+
+  .assinaturas { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 50px; gap: 20px; }
+  .assinatura-data { font-size: 0.8rem; white-space: nowrap; }
+  .assinatura-linha { flex: 1; border-top: 1px solid #333; text-align: center; padding-top: 4px; font-size: 0.78rem; }
+  .assinatura-tecnico { font-size: 0.8rem; white-space: nowrap; border-top: 1px solid #333; padding-top: 4px; text-align: center; }
+
+  .toolbar { max-width: 900px; margin: 0 auto 12px; display: flex; justify-content: flex-end; }
+  .toolbar button {
+    background: #14b8a6; color: #fff; border: none; border-radius: 6px; padding: 10px 18px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: Arial, sans-serif;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .toolbar { display: none; }
+    .page { box-shadow: none; margin: 0; max-width: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button id="btn-print">Imprimir / Salvar como PDF</button>
+</div>
+
+<div class="page" id="page"></div>
+
+<script>
+function formatDateHora(iso) {
+  const d = new Date(iso)
+  return d.toLocaleDateString('pt-BR') + ' - ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+}
+
+function formatDateTimeLocal(value) {
+  if (!value) return '—'
+  const d = new Date(value)
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+}
+
+function render() {
+  const raw = sessionStorage.getItem('atendimento-impressao')
+  if (!raw) {
+    document.getElementById('page').innerHTML = '<p>Nenhum atendimento para imprimir. Volte e clique em "Imprimir" a partir do formulário.</p>'
+    return
+  }
+  const d = JSON.parse(raw)
+  const c = d.cliente
+  const tipoLabel = d.tipo || 'Remoto'
+
+  document.getElementById('page').innerHTML = `
+    <div class="topo">
+      <div class="logo-box">
+        <div class="logo-box__nome">banner<span>jet</span></div>
+        <div class="logo-box__sub">GROUP</div>
+      </div>
+      <div class="empresa-info">
+        <div class="empresa-info__nome">${d.empresa.nome}</div>
+        <div>${d.empresa.endereco}</div>
+        <div>${d.empresa.cidadeEstado}</div>
+        <div>CNPJ:${d.empresa.cnpj} - IE: ${d.empresa.ie}</div>
+        <div>Fone: ${d.empresa.fones} Cel:</div>
+        <div>${d.empresa.site} ${d.empresa.email}</div>
+      </div>
+      <div class="numero-data">
+        <div class="numero-data__numero">N° ${d.numero}</div>
+        <div>${formatDateHora(d.dataHoraCriacao)}</div>
+      </div>
+    </div>
+
+    <hr class="divisor" />
+    <div class="section-title">Atendimento/Assistência Técnica (${tipoLabel})</div>
+    <hr class="divisor" />
+
+    <div class="grid-2">
+      <div><b>Razão Social:</b> ${c.razaoSocial}</div>
+      <div><b>Nome Fantasia:</b> ${c.nomeFantasia}</div>
+      <div><b>CNPJ:</b> ${c.cnpj}</div>
+      <div><b>Inscrição Estadual:</b> ${c.ie}</div>
+      <div><b>End:</b> ${c.endereco}</div>
+      <div><b>Bairro:</b> ${c.bairro || '—'}</div>
+      <div><b>CEP:</b> ${c.cep}</div>
+      <div><b>Cidade:</b> ${c.cidade}</div>
+      <div><b>Contato:</b> ${c.contato || ''}</div>
+      <div><b>Complemento:</b> ${c.complemento || ''}</div>
+      <div><b>Telefone:</b> ${c.telefone}</div>
+      <div><b>Celular:</b> ${c.celular || ''}</div>
+      <div><b>E-mail:</b> ${c.email}</div>
+      <div><b>Site:</b> ${c.site || ''}</div>
+    </div>
+
+    <hr class="divisor" />
+    <div class="section-title">Agendado Para</div>
+    <hr class="divisor" />
+    <div class="grid-3">
+      <div><b>Data Ida</b><br>${formatDateTimeLocal(d.ida)}</div>
+      <div><b>Data Volta</b><br>${formatDateTimeLocal(d.volta)}</div>
+      <div><b>Técnico Responsável</b><br>${d.tecnico}</div>
+    </div>
+
+    ${d.tipo === 'Laboratório' ? `
+    <hr class="divisor" />
+    <div class="section-title">Informações do Laboratório</div>
+    <hr class="divisor" />
+    <div class="grid-3">
+      <div><b>Requisição de Peças</b><br>${d.requisicao ? 'Nº ' + d.requisicao : '—'}</div>
+      <div><b>Atendimento Remoto Vinculado</b><br>${d.atendimentoOrigem ? 'Nº ' + d.atendimentoOrigem.numero : '—'}</div>
+      <div><b>Técnico Suporte Remoto</b><br>${d.atendimentoOrigem ? d.atendimentoOrigem.tecnico : '—'}</div>
+    </div>
+    ` : ''}
+
+    <hr class="divisor" />
+    <div class="section-title">Descrição do Equipamento</div>
+    <hr class="divisor" />
+    <div class="grid-3">
+      <div><b>Equipamento</b><br>${d.equipamento || '—'}</div>
+      <div><b>Marca</b><br>${d.marca || '—'}</div>
+      <div><b>Modelo</b><br>${d.modelo || '—'}</div>
+    </div>
+
+    <hr class="divisor" />
+    <div class="section-title">Dados dos Produtos/Serviços</div>
+    <hr class="divisor" />
+    <table class="produtos">
+      <thead><tr><th>Cod.</th><th>Descrição</th><th>Qtd.</th><th>Valor</th><th>Valor Total</th></tr></thead>
+      <tbody><tr><td colspan="5" style="text-align:center;color:#999">Nenhum produto/serviço lançado</td></tr></tbody>
+    </table>
+
+    <hr class="divisor" />
+    <div class="section-title">Descrição do Chamado</div>
+    <div class="chamado-bloco">
+      <div class="chamado-bloco__titulo">Defeito</div>
+      <div class="chamado-bloco__texto">${d.defeito || '—'}</div>
+      <div class="chamado-bloco__titulo">Laudo Técnico</div>
+      <div class="chamado-bloco__texto">${d.laudoTecnico || '—'}</div>
+    </div>
+
+    <div class="disclaimer">
+      <p>Confirmo que os serviços foram prestados de maneira correta e eficiente, permanecendo o equipamento ou impressora funcionando em perfeito estado, desta forma fico de acordo com todos os custos informados.</p>
+      <p style="margin-top:8px">Confirmo recebimento dos materiais em perfeitas condições de uso e funcionamento.</p>
+    </div>
+
+    <div class="assinaturas">
+      <div class="assinatura-data">___/___/______</div>
+      <div class="assinatura-linha">Assinatura</div>
+      <div class="assinatura-tecnico">${d.tecnico}</div>
+    </div>
+  `
+}
+
+render()
+document.getElementById('btn-print').addEventListener('click', () => window.print())
+</script>
+</body>
+</html>

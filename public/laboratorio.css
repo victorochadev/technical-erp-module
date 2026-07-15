@@ -1,0 +1,66 @@
+.toast-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 999; }
+.toast-simple {
+  background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 12px 18px; font-size: 0.85rem; color: var(--text-primary);
+  opacity: 0; transform: translateY(8px); transition: all 0.2s ease;
+}
+.toast-simple--show { opacity: 1; transform: translateY(0); }
+
+.btn-add-confirm {
+  border: none; border-radius: var(--radius-sm); background: var(--presencial); color: #fff;
+  font-family: var(--font); font-size: 0.83rem; font-weight: 600; padding: 8px 16px; cursor: pointer;
+}
+.btn-add-confirm:hover { filter: brightness(1.08); }
+
+/* MODAL DE DETALHES DO CARTÃO */
+.lab-modal-overlay {
+  position: fixed; inset: 0; background: rgba(15,17,23,0.55); display: flex; align-items: flex-start;
+  justify-content: center; padding: 40px 20px; z-index: 500; overflow-y: auto;
+}
+.lab-modal {
+  background: var(--bg-card); border-radius: var(--radius-lg); box-shadow: var(--shadow);
+  width: 100%; max-width: 920px; display: flex; flex-direction: column; max-height: 88vh;
+}
+.lab-modal__header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px 22px; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;
+}
+.lab-modal__close {
+  width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--bg-surface);
+  color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+}
+.lab-modal__close:hover { background: var(--text-primary); color: var(--bg-card); }
+.lab-modal__close svg { width: 16px; height: 16px; }
+.lab-modal__body { display: flex; flex: 1; min-height: 0; }
+.lab-modal__main { flex: 1.5; padding: 20px 22px; overflow-y: auto; }
+.lab-modal__side {
+  flex: 1; padding: 20px 22px; background: var(--bg-surface); border-left: 1px solid var(--border-subtle);
+  display: flex; flex-direction: column; min-height: 0; min-width: 280px;
+}
+.lab-modal__titulo { font-size: 1.2rem; font-weight: 700; margin-bottom: 14px; line-height: 1.3; }
+.lab-modal__sla { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px; }
+.lab-modal__sla-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.lab-modal__section-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; font-weight: 700; color: var(--text-secondary); margin: 18px 0 10px; }
+.lab-modal__section-title:first-of-type { margin-top: 0; }
+
+.lab-detalhe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; font-size: 0.86rem; }
+.lab-detalhe-grid dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.02em; color: var(--text-muted); font-weight: 700; margin-bottom: 3px; }
+.lab-detalhe-grid dd { color: var(--text-primary); }
+.lab-detalhe-grid dd:empty::after, .lab-detalhe-grid dd.vazio { content: '—'; color: var(--text-muted); }
+.lab-detalhe-grid dd { white-space: pre-wrap; }
+.lab-detalhe-grid .span-2 { grid-column: 1 / -1; }
+
+.lab-comentarios { display: flex; flex-direction: column; gap: 14px; flex: 1; min-height: 0; }
+.lab-comentarios__form { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+.lab-comentarios__form textarea {
+  font-family: var(--font); font-size: 0.85rem; padding: 8px 10px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default); background: var(--bg-input); color: var(--text-primary);
+  resize: vertical; min-height: 54px;
+}
+.lab-comentarios__lista { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.lab-comentario { font-size: 0.83rem; }
+.lab-comentario--sistema { color: var(--text-muted); font-style: italic; }
+.lab-comentario__autor { font-weight: 700; color: var(--text-primary); font-style: normal; }
+.lab-comentario__texto { margin-top: 2px; }
+.lab-comentario__data { display: block; font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
+.lab-comentario__data a { color: inherit; }
