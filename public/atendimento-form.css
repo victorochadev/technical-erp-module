@@ -121,3 +121,16 @@
   opacity: 0; transform: translateY(8px); transition: all 0.2s ease;
 }
 .toast-simple--show { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 768px) {
+  .busca-top { flex-direction: column; align-items: stretch; }
+  .cliente-info { flex-direction: column; align-items: stretch; }
+  .cliente-info__grid { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .field-block--wide { grid-column: span 1; }
+  .datetime-row { flex-direction: column; align-items: stretch; }
+  .form-actionbar { flex-wrap: wrap; gap: 10px; }
+  .form-header-row { flex-wrap: wrap; gap: 10px; }
+  .sla-picker { flex-wrap: wrap; }
+  .sla-picker__option { flex: 1 1 45%; }
+}

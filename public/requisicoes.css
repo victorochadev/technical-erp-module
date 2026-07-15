@@ -34,3 +34,8 @@
 }
 .row-actions__item svg { width: 15px; height: 15px; flex-shrink: 0; }
 .row-actions__item:hover { background: var(--bg-surface); color: var(--text-primary); }
+
+@media (max-width: 768px) {
+  .list-toolbar { flex-wrap: wrap; }
+  .list-toolbar .search-input { width: 100%; }
+}

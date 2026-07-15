@@ -47,8 +47,10 @@ body {
   background: var(--bg-page);
   color: var(--text-primary);
   min-height: 100vh;
-  min-width: 1024px;
-  padding-left: 64px;
+}
+
+@media (min-width: 769px) {
+  body { padding-left: 64px; }
 }
 
 /* SIDEBAR */
@@ -335,4 +337,47 @@ body {
 }
 .board-column__add-actions { display: flex; gap: 8px; align-items: center; }
 .board-column__add-cancel { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 4px 8px; }
+
+/* ===================== RESPONSIVO (celular / tablet) ===================== */
+
+@media (max-width: 768px) {
+  body { padding-left: 0; padding-bottom: 60px; }
+
+  /* Sidebar vira barra inferior — flyouts (hover) não funcionam bem no touch,
+     então cada ícone passa a navegar direto para a página principal do módulo. */
+  .sidebar {
+    top: auto; bottom: 0; left: 0; right: 0; width: 100%; height: 60px;
+    flex-direction: row; justify-content: space-evenly; align-items: center;
+    padding: 0 4px; gap: 2px; border-right: none; border-top: 1px solid var(--border-subtle);
+    overflow-x: auto;
+  }
+  .sidebar__logo { display: none; }
+  .sidebar__flyout { display: none !important; }
+  .sidebar__link { width: 38px; height: 38px; flex-shrink: 0; }
+
+  .header-inner { flex-wrap: wrap; padding: 10px 16px; row-gap: 8px; }
+  .header { height: auto; min-height: var(--header-height); }
+  .header-meta { flex-wrap: wrap; }
+
+  .main { padding: 16px; gap: 18px; }
+
+  .kpi-grid { grid-template-columns: 1fr; }
+  .donut-row { flex-wrap: wrap; }
+
+  .tabs-row, .list-toolbar, .busca-top { flex-wrap: wrap; }
+  .filters-bar { flex-direction: column; align-items: stretch; }
+  .search-input { min-width: 0; width: 100%; }
+  .filter-select { width: 100%; }
+
+  .calendar-scroll { overflow-x: auto; }
+  .calendar-grid { min-width: 640px; }
+
+  .board-column { width: 82vw; max-width: 320px; }
+}
+
+@media (max-width: 420px) {
+  .kpi-card__big { font-size: 2.1rem; }
+  .sidebar__link { width: 34px; height: 34px; }
+  .sidebar__link svg { width: 18px; height: 18px; }
+}
 .board-column__add-cancel:hover { color: var(--text-primary); }

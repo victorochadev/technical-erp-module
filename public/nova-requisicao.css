@@ -67,3 +67,9 @@
   opacity: 0; transform: translateY(8px); transition: all 0.2s ease;
 }
 .toast-simple--show { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 768px) {
+  .busca-top { flex-direction: column; align-items: stretch; }
+  .produto-add-row { grid-template-columns: 1fr; }
+  .produto-add-row .btn { width: 100%; justify-content: center; }
+}

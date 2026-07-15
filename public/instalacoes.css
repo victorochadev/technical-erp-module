@@ -108,3 +108,11 @@
 }
 .toast-simple--show { opacity: 1; transform: translateY(0); }
 
+@media (max-width: 768px) {
+  .cliente-grid { grid-template-columns: 1fr; }
+  .checklist-item { grid-template-columns: 1fr; }
+  .detalhe-info-row { gap: 20px; }
+  .checklist-item__actions { flex-wrap: wrap; }
+  .checklist-item__resultado { flex-direction: column; align-items: flex-start; }
+}
+

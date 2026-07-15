@@ -64,3 +64,11 @@
 .lab-comentario__texto { margin-top: 2px; }
 .lab-comentario__data { display: block; font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
 .lab-comentario__data a { color: inherit; }
+
+@media (max-width: 768px) {
+  .lab-modal-overlay { padding: 0; align-items: stretch; }
+  .lab-modal { max-width: 100%; max-height: 100vh; border-radius: 0; }
+  .lab-modal__body { flex-direction: column; overflow-y: auto; }
+  .lab-modal__side { border-left: none; border-top: 1px solid var(--border-subtle); min-width: 0; }
+  .lab-detalhe-grid { grid-template-columns: 1fr; }
+}
