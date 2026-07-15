@@ -6,7 +6,7 @@
 const { TECNICOS } = require('./mockAtendimentos')
 const { CATALOGO } = require('./catalogoRepository')
 
-const USUARIO_LOGADO = 'Victor Gabriel Amadeu Rocha'
+const USUARIO_LOGADO = 'Claudio Code Dev'
 
 // SLA de manutenção: 10 dias úteis a partir da chegada do equipamento.
 const PRAZO_DIAS_UTEIS = 10

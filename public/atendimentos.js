@@ -8,15 +8,16 @@ const state = {
 const MESES_PT = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 
 // Dados fixos do timbrado — em produção viriam do cadastro da empresa/filial no ERP.
+// >>> PONTO DE INTEGRAÇÃO <<<: preencher com dados fictícios/de teste.
 const EMPRESA = {
-  nome: 'BANNERJET IMP EXP E COM DE MAQ EQUIP PARA COM VISUAL LTDA',
-  endereco: 'Avenida José Munia, 5535, Jardim Redentor - Andar 2 Conj. 205 Sala 5',
-  cidadeEstado: '15090-185 São José do Rio Preto - SP',
-  cnpj: '06276736000173',
-  ie: '647444053113',
-  fones: '(17) 99741-9548, (17) 3235-1836',
-  site: 'https://bannerjet.com.br',
-  email: 'bm1@bm1.com.br',
+  nome: '',
+  endereco: '',
+  cidadeEstado: '',
+  cnpj: '',
+  ie: '',
+  fones: '',
+  site: '',
+  email: '',
 }
 
 function mesLabel(mes) {
