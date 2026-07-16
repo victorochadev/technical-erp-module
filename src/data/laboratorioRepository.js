@@ -1,27 +1,15 @@
-// Mock do quadro Kanban do Laboratório (manutenção de equipamentos).
-// Em produção, isso é substituído por consultas/updates reais ao banco do ERP
-// (as funções abaixo — listQuadro, moverCard, criarCard, adicionarComentario,
-// criarColuna, excluirColuna — são o ponto exato de troca).
+// Camada de acesso a dados do quadro Kanban do Laboratório.
+// Colunas e cartões vêm das tabelas `laboratorio_colunas` / `laboratorio_cards`
+// no Supabase (ver supabase/schema.sql).
 
-const { TECNICOS } = require('./mockAtendimentos')
-const { CATALOGO } = require('./catalogoRepository')
+const supabase = require('./supabaseClient')
+const catalogoRepo = require('./catalogoRepository')
 
 const USUARIO_LOGADO = 'Claudio Code Dev'
 
 // SLA de manutenção: 10 dias úteis a partir da chegada do equipamento.
 const PRAZO_DIAS_UTEIS = 10
 const SLA_DIAS_UTEIS_ALERTA = 2 // a partir de 2 dias úteis (ou menos) para vencer, vira "Importante"
-
-let COLUNAS = [
-  { id: 'entrada', nome: 'Entrada', cor: '#64748b' },
-  { id: 'fila', nome: 'Fila', cor: '#3b82f6' },
-  { id: 'orcamento', nome: 'Orçamento', cor: '#8b5cf6' },
-  { id: 'manutencao', nome: 'Manutenção', cor: '#f59e0b' },
-  { id: 'testes', nome: 'Testes', cor: '#06b6d4' },
-  { id: 'finalizado', nome: 'Finalizado', cor: '#22c55e' },
-  { id: 'aguardando-coleta', nome: 'Aguardando Coleta', cor: '#eab308' },
-  { id: 'coletado', nome: 'Coletado', cor: '#ec4899' },
-]
 
 // Colunas em que a manutenção já foi concluída — o SLA de reparo não é mais
 // aplicável a partir daqui (o que resta é só a coleta pelo cliente).
@@ -34,25 +22,12 @@ const PALETA_CORES_NOVAS_COLUNAS = [
 
 const SLA_CORES = { padrao: '#22c55e', importante: '#f59e0b', urgente: '#ef4444' }
 
-const CLIENTES_POOL = [
-  'Dani Duarte Silva Papelaria', 'Fontes Crisostomo Comercio Servicos e Transportes Ltda.',
-  'Rodrigo Gehm', 'RIBFER Usinagem e Ferramentaria Ltda.', 'Grafica Gutenberg Ltda.',
-  'Jessica Flores da Silva Granada', 'A G M Vago Agv - Grafica e Editora Ltda.', 'Pará Cópias Ltda. - ME',
-  'Mavimix Adesivos Decorativos Ltda.', 'Ana Claudia da Silva Reimberg', 'Vitor Costa Marinho',
-  'Coretex Industria Textil Ltda.', 'Miria Cardoso de Oliveira', 'Instituto de Agricultura e Evangelismo - IAGE',
-  'Serigraf Comunicação Visual Ltda.', 'Print Express Digital Ltda. - ME', 'Adesivare Sinalização Ltda.',
-  'Marcia Aparecida dos Santos', 'Copy House Reprografia Ltda.', 'Vinil Sign Comunicação Visual Ltda.',
-  'Fernando Augusto Barbosa', 'Grafimax Impressos e Adesivos Ltda.', 'Renata Cristina Souza Lima',
-]
-
 const DEFEITOS_POOL = [
   'Cliente alega desalinhamento.', 'Não liga.', 'Corte impreciso, perdendo tensão da lâmina.',
   'Erro de comunicação com o computador.', 'Cabeça de impressão entupida.', 'Ruído anormal durante o corte.',
   'Trava no meio do trabalho.', 'Desalinhamento de cor na impressão.', 'Correia de arraste solta.',
   'Software não reconhece o equipamento.',
 ]
-
-const HOJE = new Date(2026, 6, 14)
 
 function addDias(data, dias) {
   const d = new Date(data)
@@ -90,14 +65,10 @@ function formatDiaMes(data) {
   return `${data.getDate()} de ${meses[data.getMonth()]}`
 }
 
-function formatDiaMesAno(data) {
-  return `${formatDiaMes(data)} de ${data.getFullYear()}`
-}
-
 function formatDataHora(data) {
   const hh = String(data.getHours()).padStart(2, '0')
   const mm = String(data.getMinutes()).padStart(2, '0')
-  return `${formatDiaMesAno(data)}, ${hh}:${mm}`
+  return `${formatDiaMes(data)} de ${data.getFullYear()}, ${hh}:${mm}`
 }
 
 function toIso(data) {
@@ -116,8 +87,8 @@ function iniciais(nome) {
   return nome.split(' ').filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase()
 }
 
-function nomeColuna(id) {
-  return (COLUNAS.find(c => c.id === id) || {}).nome || id
+function nomeColuna(colunas, id) {
+  return (colunas.find(c => c.id === id) || {}).nome || id
 }
 
 function gerarWms() {
@@ -135,54 +106,41 @@ function slugify(nome) {
 function calcularSla(dataVencimentoIso, coluna) {
   if (COLUNAS_RESOLVIDAS.includes(coluna)) return 'padrao'
   const vencimento = new Date(dataVencimentoIso + 'T00:00:00')
-  const diasUteisRestantes = diasUteisEntre(HOJE, vencimento)
+  const diasUteisRestantes = diasUteisEntre(new Date(), vencimento)
   if (diasUteisRestantes < 0) return 'urgente'
   if (diasUteisRestantes <= SLA_DIAS_UTEIS_ALERTA) return 'importante'
   return 'padrao'
 }
 
-function gerarCard(coluna) {
-  const grupo = pick(CATALOGO)
-  const modeloInfo = pick(grupo.modelos)
-  const chegada = addDias(HOJE, rand(-20, 5))
-  const vencimento = addDiasUteis(chegada, PRAZO_DIAS_UTEIS)
-  const temTecnico = coluna !== 'entrada' && Math.random() > 0.3
-  const avancado = ['testes', ...COLUNAS_RESOLVIDAS].includes(coluna)
-  const coletado = coluna === 'coletado'
+function mapColuna(row) {
+  return { id: row.id, nome: row.nome, cor: row.cor }
+}
 
+function mapCard(row) {
   return {
-    numero: rand(19000, 21000),
-    cliente: pick(CLIENTES_POOL),
-    coluna,
-    dataChegada: toIso(chegada),
-    dataVencimento: toIso(vencimento),
-    anexos: Math.random() > 0.6 ? rand(1, 2) : 0,
-    tecnico: temTecnico ? pick(TECNICOS) : null,
-    equipamento: grupo.equipamento,
-    modelo: modeloInfo.modelo,
-    wms: gerarWms(),
-    defeito: pick(DEFEITOS_POOL),
-    requisicao: '',
-    laudoTecnico: avancado ? 'Peça substituída e equipamento testado, funcionando normalmente.' : '',
-    dataManutencaoFin: avancado ? toIso(addDias(chegada, rand(2, 8))) : '',
-    dataSaida: coletado ? toIso(addDias(chegada, rand(9, 14))) : '',
-    drive: avancado ? 'drive.google.com/bannerjet-lab/' + rand(10000, 99999) : '',
-    timeline: [
-      { tipo: 'sistema', autor: USUARIO_LOGADO, texto: `adicionou este cartão a ${nomeColuna(coluna)}`, data: HOJE.toISOString() },
-    ],
+    id: row.id,
+    numero: row.numero,
+    cliente: row.cliente,
+    coluna: row.coluna_id,
+    dataChegada: row.data_chegada,
+    dataVencimento: row.data_vencimento,
+    anexos: row.anexos,
+    tecnico: row.tecnico_nome,
+    equipamento: row.equipamento || '',
+    modelo: row.modelo || '',
+    wms: row.wms || '',
+    defeito: row.defeito || '',
+    requisicao: row.requisicao || '',
+    laudoTecnico: row.laudo_tecnico || '',
+    dataManutencaoFin: row.data_manutencao_fin || '',
+    dataSaida: row.data_saida || '',
+    drive: row.drive || '',
+    atendimentoOrigem: row.atendimento_origem_id ? { id: row.atendimento_origem_id } : null,
+    timeline: row.timeline || [],
   }
 }
 
-const QUANTIDADE_POR_COLUNA = {
-  entrada: 6, fila: 3, orcamento: 2, manutencao: 4, testes: 2, finalizado: 3, 'aguardando-coleta': 2, coletado: 2,
-}
-
-let proximoId = 1
-const CARDS = COLUNAS.flatMap(({ id }) =>
-  Array.from({ length: QUANTIDADE_POR_COLUNA[id] || 0 }, () => ({ id: proximoId++, ...gerarCard(id) }))
-)
-
-function serializar(c) {
+function serializar(colunas, c) {
   const sla = calcularSla(c.dataVencimento, c.coluna)
   return {
     ...c,
@@ -191,47 +149,91 @@ function serializar(c) {
     sla,
     slaCor: SLA_CORES[sla],
     tecnicoIniciais: c.tecnico ? iniciais(c.tecnico) : null,
-    colunaCor: (COLUNAS.find(col => col.id === c.coluna) || {}).cor,
-    colunaNome: nomeColuna(c.coluna),
+    colunaCor: (colunas.find(col => col.id === c.coluna) || {}).cor,
+    colunaNome: nomeColuna(colunas, c.coluna),
     comentarios: c.timeline.filter(t => t.tipo === 'comentario').length,
     timeline: c.timeline.map(t => ({ ...t, dataLabel: formatDataHora(new Date(t.data)) })).reverse(),
   }
 }
 
+async function fetchColunas() {
+  const { data, error } = await supabase.from('laboratorio_colunas').select('*').order('ordem')
+  if (error) throw error
+  return data.map(mapColuna)
+}
+
 async function listQuadro() {
-  return { colunas: COLUNAS, cards: CARDS.map(serializar) }
+  const colunas = await fetchColunas()
+  const { data, error } = await supabase.from('laboratorio_cards').select('*').order('id')
+  if (error) throw error
+  return { colunas, cards: data.map(mapCard).map(c => serializar(colunas, c)) }
 }
 
 async function moverCard(id, novaColuna) {
-  const card = CARDS.find(c => c.id === Number(id))
-  if (!card) return null
-  if (!COLUNAS.some(col => col.id === novaColuna)) return null
+  const colunas = await fetchColunas()
+  if (!colunas.some(col => col.id === novaColuna)) return null
+
+  const { data: row, error } = await supabase.from('laboratorio_cards').select('*').eq('id', Number(id)).maybeSingle()
+  if (error) throw error
+  if (!row) return null
+
+  const card = mapCard(row)
+  let timeline = card.timeline
   if (card.coluna !== novaColuna) {
-    card.timeline.push({
+    timeline = [...timeline, {
       tipo: 'sistema', autor: USUARIO_LOGADO,
-      texto: `moveu este cartão de ${nomeColuna(card.coluna)} para ${nomeColuna(novaColuna)}`,
+      texto: `moveu este cartão de ${nomeColuna(colunas, card.coluna)} para ${nomeColuna(colunas, novaColuna)}`,
       data: new Date().toISOString(),
-    })
-    card.coluna = novaColuna
+    }]
   }
-  return serializar(card)
+
+  const { data: atualizado, error: e2 } = await supabase
+    .from('laboratorio_cards')
+    .update({ coluna_id: novaColuna, timeline })
+    .eq('id', Number(id))
+    .select()
+    .single()
+  if (e2) throw e2
+  return serializar(colunas, mapCard(atualizado))
+}
+
+async function proximoNumeroCard() {
+  return rand(19000, 21000)
 }
 
 async function criarCard({ cliente, coluna }) {
-  if (!COLUNAS.some(col => col.id === coluna)) return null
-  const card = { id: proximoId++, ...gerarCard(coluna) }
-  card.cliente = cliente
-  card.anexos = 0
-  card.tecnico = null
-  card.requisicao = ''
-  card.laudoTecnico = ''
-  card.dataChegada = toIso(HOJE)
-  card.dataVencimento = toIso(addDiasUteis(HOJE, PRAZO_DIAS_UTEIS))
-  card.dataManutencaoFin = ''
-  card.dataSaida = ''
-  card.drive = ''
-  CARDS.push(card)
-  return serializar(card)
+  const colunas = await fetchColunas()
+  if (!colunas.some(col => col.id === coluna)) return null
+
+  const catalogo = await catalogoRepo.listCatalogoCompleto()
+  const grupo = pick(catalogo)
+  const modeloInfo = pick(grupo.modelos)
+  const hoje = new Date()
+
+  const { data, error } = await supabase
+    .from('laboratorio_cards')
+    .insert({
+      numero: await proximoNumeroCard(),
+      cliente,
+      coluna_id: coluna,
+      data_chegada: toIso(hoje),
+      data_vencimento: toIso(addDiasUteis(hoje, PRAZO_DIAS_UTEIS)),
+      anexos: 0,
+      tecnico_nome: null,
+      equipamento: grupo.equipamento,
+      modelo: modeloInfo.modelo,
+      wms: modeloInfo.wms[0] || gerarWms(),
+      defeito: pick(DEFEITOS_POOL),
+      requisicao: '',
+      laudo_tecnico: '',
+      timeline: [
+        { tipo: 'sistema', autor: USUARIO_LOGADO, texto: `adicionou este cartão a ${nomeColuna(colunas, coluna)}`, data: new Date().toISOString() },
+      ],
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return serializar(colunas, mapCard(data))
 }
 
 // Cria um cartão a partir de um Atendimento Laboratório (ver atendimentosRepository.js
@@ -240,77 +242,102 @@ async function criarCard({ cliente, coluna }) {
 // de partida (o cálculo do SLA em si continua sempre automático a partir da data,
 // ver calcularSla — isso só ajusta o ponto de partida do prazo).
 async function criarCardDeAtendimento(dados) {
+  const colunas = await fetchColunas()
   const coluna = 'entrada'
+  const hoje = new Date()
   let dataVencimento
-  if (dados.slaInicial === 'urgente') dataVencimento = addDias(HOJE, -1)
-  else if (dados.slaInicial === 'importante') dataVencimento = addDiasUteis(HOJE, SLA_DIAS_UTEIS_ALERTA)
-  else dataVencimento = addDiasUteis(HOJE, PRAZO_DIAS_UTEIS)
+  if (dados.slaInicial === 'urgente') dataVencimento = addDias(hoje, -1)
+  else if (dados.slaInicial === 'importante') dataVencimento = addDiasUteis(hoje, SLA_DIAS_UTEIS_ALERTA)
+  else dataVencimento = addDiasUteis(hoje, PRAZO_DIAS_UTEIS)
 
   const wmsArray = Array.isArray(dados.wms) ? dados.wms : (dados.wms ? [dados.wms] : [])
 
-  const card = {
-    id: proximoId++,
-    numero: dados.atendimentoNumero ? Number(dados.atendimentoNumero) : rand(19000, 21000),
-    cliente: dados.cliente,
-    coluna,
-    dataChegada: toIso(HOJE),
-    dataVencimento: toIso(dataVencimento),
-    anexos: 0,
-    tecnico: dados.tecnico || null,
-    equipamento: dados.equipamento || '',
-    modelo: dados.modelo || '',
-    wms: wmsArray[0] || '',
-    defeito: dados.defeito || '',
-    requisicao: dados.requisicao || '',
-    laudoTecnico: '',
-    dataManutencaoFin: '',
-    dataSaida: '',
-    drive: '',
-    atendimentoOrigem: dados.atendimentoOrigemId ? {
-      id: dados.atendimentoOrigemId,
-      numero: dados.atendimentoOrigemNumero || null,
-      resumo: dados.atendimentoOrigemResumo || '',
-    } : null,
-    timeline: [
-      {
-        tipo: 'sistema', autor: USUARIO_LOGADO,
-        texto: dados.atendimentoNumero
-          ? `adicionou este cartão a ${nomeColuna(coluna)} (a partir do Atendimento nº ${dados.atendimentoNumero})`
-          : `adicionou este cartão a ${nomeColuna(coluna)}`,
-        data: new Date().toISOString(),
-      },
-    ],
-  }
-  CARDS.push(card)
-  return serializar(card)
+  const { data, error } = await supabase
+    .from('laboratorio_cards')
+    .insert({
+      numero: dados.atendimentoNumero ? Number(dados.atendimentoNumero) : await proximoNumeroCard(),
+      cliente: dados.cliente,
+      coluna_id: coluna,
+      data_chegada: toIso(hoje),
+      data_vencimento: toIso(dataVencimento),
+      anexos: 0,
+      tecnico_nome: dados.tecnico || null,
+      equipamento: dados.equipamento || '',
+      modelo: dados.modelo || '',
+      wms: wmsArray[0] || '',
+      defeito: dados.defeito || '',
+      requisicao: dados.requisicao || '',
+      laudo_tecnico: '',
+      atendimento_origem_id: dados.atendimentoOrigemId || null,
+      timeline: [
+        {
+          tipo: 'sistema', autor: USUARIO_LOGADO,
+          texto: dados.atendimentoNumero
+            ? `adicionou este cartão a ${nomeColuna(colunas, coluna)} (a partir do Atendimento nº ${dados.atendimentoNumero})`
+            : `adicionou este cartão a ${nomeColuna(colunas, coluna)}`,
+          data: new Date().toISOString(),
+        },
+      ],
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return serializar(colunas, mapCard(data))
 }
 
 async function adicionarComentario(id, texto) {
-  const card = CARDS.find(c => c.id === Number(id))
-  if (!card) return null
-  card.timeline.push({ tipo: 'comentario', autor: USUARIO_LOGADO, texto, data: new Date().toISOString() })
-  return serializar(card)
+  const { data: row, error } = await supabase.from('laboratorio_cards').select('*').eq('id', Number(id)).maybeSingle()
+  if (error) throw error
+  if (!row) return null
+
+  const timeline = [...(row.timeline || []), { tipo: 'comentario', autor: USUARIO_LOGADO, texto, data: new Date().toISOString() }]
+  const { data: atualizado, error: e2 } = await supabase
+    .from('laboratorio_cards')
+    .update({ timeline })
+    .eq('id', Number(id))
+    .select()
+    .single()
+  if (e2) throw e2
+
+  const colunas = await fetchColunas()
+  return serializar(colunas, mapCard(atualizado))
 }
 
 async function criarColuna(nome) {
   if (!nome || !nome.trim()) return null
   const nomeLimpo = nome.trim()
+  const colunas = await fetchColunas()
+
   let id = slugify(nomeLimpo)
   let sufixo = 2
-  while (COLUNAS.some(c => c.id === id)) {
+  while (colunas.some(c => c.id === id)) {
     id = `${slugify(nomeLimpo)}-${sufixo}`
     sufixo++
   }
-  const cor = PALETA_CORES_NOVAS_COLUNAS[COLUNAS.length % PALETA_CORES_NOVAS_COLUNAS.length]
-  const coluna = { id, nome: nomeLimpo, cor }
-  COLUNAS.push(coluna)
-  return coluna
+  const cor = PALETA_CORES_NOVAS_COLUNAS[colunas.length % PALETA_CORES_NOVAS_COLUNAS.length]
+
+  const { data, error } = await supabase
+    .from('laboratorio_colunas')
+    .insert({ id, nome: nomeLimpo, cor, ordem: colunas.length + 1 })
+    .select()
+    .single()
+  if (error) throw error
+  return mapColuna(data)
 }
 
 async function excluirColuna(id) {
-  if (!COLUNAS.some(c => c.id === id)) return { erro: 'not_found' }
-  if (CARDS.some(c => c.coluna === id)) return { erro: 'nao_vazia' }
-  COLUNAS = COLUNAS.filter(c => c.id !== id)
+  const colunas = await fetchColunas()
+  if (!colunas.some(c => c.id === id)) return { erro: 'not_found' }
+
+  const { count, error: e1 } = await supabase
+    .from('laboratorio_cards')
+    .select('*', { count: 'exact', head: true })
+    .eq('coluna_id', id)
+  if (e1) throw e1
+  if (count > 0) return { erro: 'nao_vazia' }
+
+  const { error } = await supabase.from('laboratorio_colunas').delete().eq('id', id)
+  if (error) throw error
   return { ok: true }
 }
 

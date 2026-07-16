@@ -1,88 +1,105 @@
 // Camada de acesso a dados dos atendimentos técnicos.
-//
-// >>> PONTO DE INTEGRAÇÃO <<<
-// Hoje os dados vêm de um array em memória (mock). Para plugar no ERP real,
-// troque o corpo das funções abaixo por consultas ao banco (MySQL/Postgres/etc),
-// mantendo a mesma assinatura e o mesmo formato de retorno — o resto da
-// aplicação (services, rotas, dashboard) não precisa mudar.
-//
-// Sugestão de schema real (adaptar ao banco do ERP):
-//
-// CREATE TABLE atendimentos_tecnicos (
-//   id            INT PRIMARY KEY AUTO_INCREMENT,
-//   numero        VARCHAR(20) NOT NULL UNIQUE,
-//   dt_emissao    DATE NOT NULL,
-//   cliente_id    INT NOT NULL,
-//   defeito       TEXT,
-//   tecnico_id    INT,
-//   tipo          ENUM('Remoto', 'Presencial', 'Laboratório') NOT NULL,
-//   status        ENUM('Em Atendimento', 'Concluido', 'Cancelado') NOT NULL DEFAULT 'Em Atendimento',
-//   created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-//   updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-//   FOREIGN KEY (cliente_id) REFERENCES clientes(id),
-//   FOREIGN KEY (tecnico_id) REFERENCES tecnicos(id)
-// );
+// Dados vêm da tabela `atendimentos` no Supabase (ver supabase/schema.sql).
 
-const { generateMockAtendimentos } = require('./mockAtendimentos')
+const supabase = require('./supabaseClient')
 
-const ATENDIMENTOS = generateMockAtendimentos()
+function mapAtendimento(row) {
+  return {
+    id: row.id,
+    numero: row.numero,
+    dtEmissao: row.dt_emissao,
+    clienteId: row.cliente_id,
+    cliente: row.cliente_nome,
+    defeito: row.defeito || '',
+    laudoTecnico: row.laudo_tecnico || '',
+    tecnico: row.tecnico_nome || '',
+    equipamento: row.equipamento || '',
+    modelo: row.modelo || '',
+    wms: row.wms || [],
+    ida: row.ida ? row.ida.slice(0, 16) : '',
+    volta: row.volta ? row.volta.slice(0, 16) : '',
+    tipo: row.tipo,
+    status: row.status,
+    requisicao: row.requisicao || '',
+    atendimentoOrigemId: row.atendimento_origem_id,
+  }
+}
 
 async function listAtendimentos({ mes, tecnico, tipo, status, busca, clienteId } = {}) {
-  return ATENDIMENTOS.filter(a => {
-    if (mes && !a.dtEmissao.startsWith(mes)) return false
-    if (tecnico && a.tecnico !== tecnico) return false
-    if (tipo && a.tipo !== tipo) return false
-    if (status && a.status !== status) return false
-    if (clienteId && String(a.clienteId) !== String(clienteId)) return false
-    if (busca) {
-      const alvo = busca.toLowerCase()
-      const combinado = `${a.numero} ${a.cliente} ${a.defeito} ${a.tecnico}`.toLowerCase()
-      if (!combinado.includes(alvo)) return false
-    }
-    return true
-  })
-}
-
-// Cria um novo atendimento (usado hoje só pelo fluxo de criação do tipo
-// Laboratório, que precisa aparecer de fato na lista e gerar o cartão
-// correspondente no quadro Laboratório — ver POST /api/atendimentos).
-async function criarAtendimento(dados) {
-  const maiorNumero = ATENDIMENTOS.reduce((max, a) => Math.max(max, Number(a.numero) || 0), 0)
-  const numero = maiorNumero + 1
-
-  const novo = {
-    id: numero,
-    numero: String(numero),
-    dtEmissao: dados.dtEmissao || new Date().toISOString().slice(0, 10),
-    clienteId: dados.clienteId,
-    cliente: dados.cliente,
-    defeito: dados.defeito || '',
-    laudoTecnico: dados.laudoTecnico || '',
-    tecnico: dados.tecnico || '',
-    equipamento: dados.equipamento || '',
-    modelo: dados.modelo || '',
-    wms: dados.wms || [],
-    ida: dados.ida || '',
-    volta: dados.volta || '',
-    tipo: dados.tipo,
-    status: dados.status || 'Em Atendimento',
-    requisicao: dados.requisicao || '',
-    atendimentoOrigemId: dados.atendimentoOrigemId || null,
+  let query = supabase.from('atendimentos').select('*')
+  if (mes) {
+    const [ano, mesNum] = mes.split('-').map(Number)
+    const inicio = `${mes}-01`
+    const fimData = new Date(ano, mesNum, 1)
+    const fim = fimData.toISOString().slice(0, 10)
+    query = query.gte('dt_emissao', inicio).lt('dt_emissao', fim)
   }
-  ATENDIMENTOS.push(novo)
-  return novo
+  if (tecnico) query = query.eq('tecnico_nome', tecnico)
+  if (tipo) query = query.eq('tipo', tipo)
+  if (status) query = query.eq('status', status)
+  if (clienteId) query = query.eq('cliente_id', Number(clienteId))
+
+  const { data, error } = await query
+  if (error) throw error
+  let atendimentos = data.map(mapAtendimento)
+
+  if (busca) {
+    const alvo = busca.toLowerCase()
+    atendimentos = atendimentos.filter(a => {
+      const combinado = `${a.numero} ${a.cliente} ${a.defeito} ${a.tecnico}`.toLowerCase()
+      return combinado.includes(alvo)
+    })
+  }
+
+  return atendimentos
 }
 
-async function listTecnicos() {
-  return [...new Set(ATENDIMENTOS.map(a => a.tecnico))].sort()
+async function proximoNumero() {
+  const { data, error } = await supabase.from('atendimentos').select('numero')
+  if (error) throw error
+  const maior = data.reduce((max, r) => Math.max(max, Number(r.numero) || 0), 0)
+  return maior + 1
+}
+
+async function criarAtendimento(dados) {
+  const numero = String(await proximoNumero())
+
+  const { data, error } = await supabase
+    .from('atendimentos')
+    .insert({
+      numero,
+      dt_emissao: dados.dtEmissao || new Date().toISOString().slice(0, 10),
+      cliente_id: dados.clienteId || null,
+      cliente_nome: dados.cliente || '',
+      defeito: dados.defeito || '',
+      laudo_tecnico: dados.laudoTecnico || '',
+      tecnico_nome: dados.tecnico || '',
+      equipamento: dados.equipamento || '',
+      modelo: dados.modelo || '',
+      wms: dados.wms || [],
+      ida: dados.ida || null,
+      volta: dados.volta || null,
+      tipo: dados.tipo,
+      status: dados.status || 'Em Atendimento',
+      requisicao: dados.requisicao || '',
+      atendimento_origem_id: dados.atendimentoOrigemId || null,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return mapAtendimento(data)
 }
 
 async function listMesesDisponiveis() {
-  return [...new Set(ATENDIMENTOS.map(a => a.dtEmissao.slice(0, 7)))].sort().reverse()
+  const { data, error } = await supabase.from('atendimentos').select('dt_emissao')
+  if (error) throw error
+  return [...new Set(data.map(r => r.dt_emissao.slice(0, 7)))].sort().reverse()
 }
 
 async function buscarAtendimentoPorId(id) {
-  return ATENDIMENTOS.find(a => a.id === Number(id)) || null
+  const { data, error } = await supabase.from('atendimentos').select('*').eq('id', Number(id)).maybeSingle()
+  if (error) throw error
+  return data ? mapAtendimento(data) : null
 }
 
-module.exports = { listAtendimentos, listTecnicos, listMesesDisponiveis, buscarAtendimentoPorId, criarAtendimento }
+module.exports = { listAtendimentos, listMesesDisponiveis, buscarAtendimentoPorId, criarAtendimento }

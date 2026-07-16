@@ -10,10 +10,19 @@ npm install
 npm start
 ```
 
+Requer um arquivo `.env` na raiz (não versionado) com as credenciais do
+Supabase:
+
+```
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_ANON_KEY=xxxxx
+```
+
 Acesse `http://localhost:3300` — você vai cair na tela de **login**
 (`login.html`) antes de qualquer outra página. Credenciais em `login.js`
-(usuário `victor.rocha`). Os dados são **fictícios** (gerados em memória,
-ver `src/data/mockAtendimentos.js`), cobrindo maio, junho e julho de 2026.
+(usuário `victor.rocha`). Os dados são **reais, persistidos no Supabase**
+(Postgres) — ver seção "Banco de dados (Supabase)" abaixo — cobrindo
+maio, junho e julho de 2026 como massa inicial.
 
 Telas no protótipo, navegáveis pelo menu lateral:
 
@@ -22,6 +31,29 @@ Telas no protótipo, navegáveis pelo menu lateral:
 - `novo-atendimento.html` — **Novo Atendimento** (fluxo de criação/edição, Área Técnica)
 - `instalacoes.html` — **Instalações**, lista de pedidos de venda com instalação técnica pendente
 - `instalacao-detalhes.html` — detalhe de uma instalação, com checklist de aprovação de fotos
+
+## Banco de dados (Supabase)
+
+O módulo técnico inteiro (clientes, técnicos internos e terceirizados,
+catálogo de equipamentos/modelos/WMS, atendimentos, instalações, quadro do
+laboratório e requisições) roda sobre um projeto Supabase (Postgres) real,
+substituindo os arrays em memória que existiam antes.
+
+- `supabase/schema.sql` — schema completo (tabelas + RLS + seed dos dados
+  mestres: clientes, técnicos, técnicos terceirizados, catálogo, colunas do
+  laboratório e requisições). Rode esse arquivo no SQL Editor do Supabase ao
+  configurar um novo projeto do zero.
+- `scripts/seedSupabaseData.js` — script único (`node scripts/seedSupabaseData.js`)
+  que gera a massa de demonstração de atendimentos/instalações/cards do
+  laboratório e insere no banco. Só deve ser rodado uma vez por projeto — os
+  números/pedidos têm constraint `UNIQUE`, então uma segunda execução falha
+  em conflito ao invés de duplicar dados.
+- `src/data/supabaseClient.js` — client compartilhado, usa `SUPABASE_URL` e
+  `SUPABASE_ANON_KEY` do `.env`.
+- **RLS**: as tabelas têm Row Level Security habilitado com uma policy
+  permissiva para a chave `anon` (`for all ... using (true)`), já que este é
+  um protótipo interno sem Supabase Auth. Não use esse modelo de policy em
+  produção com dados sensíveis reais.
 
 ## Responsivo
 
@@ -283,8 +315,8 @@ está representa o status atual da manutenção.
   (sem biblioteca). Ao soltar um cartão em outra coluna, o movimento é
   confirmado no servidor via `PATCH /api/laboratorio/:id/mover` — diferente
   da maioria das outras ações do protótipo (Salvar, Aprovar/Reprovar), aqui
-  o estado é persistido no repositório em memória, então o cartão continua
-  na coluna certa mesmo depois de recarregar a página.
+  o estado é persistido de verdade no Supabase, então o cartão continua na
+  coluna certa mesmo depois de recarregar a página ou reiniciar o servidor.
 - **Detalhes do cartão**: clicar em qualquer cartão (sem arrastar) abre um
   modal com as informações do atendimento (Equipamento, WMS, Defeito,
   Requisição, Laudo Técnico, Data Chegada, Data Manutenção Fin., Data Saída,
@@ -342,14 +374,15 @@ usado no Laboratório, diferente do resto do protótipo.
 server.js                          # Express app + servidor estático
 src/
   data/
-    mockAtendimentos.js            # gerador dos dados fictícios (dashboard)
-    atendimentosRepository.js       # >>> PONTO DE INTEGRAÇÃO COM O BANCO REAL <<<
-    clientesRepository.js           # mock de clientes (busca por razão social/CNPJ)
-    catalogoRepository.js           # mock de equipamentos/modelos/WMS
-    instalacoesRepository.js        # mock de instalações (pedidos, produtos, custos, checklist)
-    laboratorioRepository.js        # mock do quadro Kanban (cartões, colunas, mover, criar)
-    requisicoesRepository.js        # mock de requisições (produtos, criar, buscar por vínculo)
-    tecnicosTerceirizadosRepository.js  # mock de técnicos terceirizados (cadastro)
+    supabaseClient.js               # client Supabase compartilhado (SUPABASE_URL/ANON_KEY do .env)
+    atendimentosRepository.js       # atendimentos — tabela `atendimentos`
+    clientesRepository.js           # clientes — tabela `clientes`
+    catalogoRepository.js           # catálogo de equipamentos/modelos/WMS — tabelas `catalogo_*`
+    instalacoesRepository.js        # instalações — tabela `instalacoes`
+    laboratorioRepository.js        # quadro Kanban — tabelas `laboratorio_colunas`/`laboratorio_cards`
+    requisicoesRepository.js        # requisições — tabela `requisicoes`
+    tecnicosRepository.js           # técnicos internos — tabela `tecnicos`
+    tecnicosTerceirizadosRepository.js  # técnicos terceirizados — tabela `tecnicos_terceirizados`
   services/
     dashboardService.js            # agregações (resumo mensal, ranking por técnico)
   routes/
@@ -374,12 +407,15 @@ public/
 
 ## Como integrar no ERP real
 
-O único arquivo que precisa mudar é `src/data/atendimentosRepository.js`.
-Hoje ele filtra um array em memória; troque o corpo das quatro funções
-(`listAtendimentos`, `listTecnicos`, `listMesesDisponiveis`,
-`buscarAtendimentoPorId`) por consultas reais ao banco do ERP, mantendo a
-mesma assinatura e formato de retorno — nada mais no projeto precisa ser
-alterado.
+Hoje os dados já são reais (Postgres via Supabase, ver seção acima), mas
+ainda é a base de demonstração deste protótipo, não o banco definitivo do
+ERP. Para plugar no banco de verdade, troque o corpo das funções de
+`src/data/atendimentosRepository.js` (`listAtendimentos`, `listMesesDisponiveis`,
+`buscarAtendimentoPorId`, `criarAtendimento`) por consultas ao banco real,
+mantendo a mesma assinatura e formato de retorno — o resto do projeto
+(rotas, `dashboardService`, front-end) não precisa mudar. O mesmo vale para
+os demais `src/data/*Repository.js`, cada um isolando o acesso a uma
+tabela/entidade.
 
 Cada atendimento deve ter este formato (os campos `equipamento`, `modelo`,
 `wms`, `ida`, `volta` e `laudoTecnico` foram adicionados para alimentar as

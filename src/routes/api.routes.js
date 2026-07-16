@@ -7,6 +7,7 @@ const instalacoesRepo = require('../data/instalacoesRepository')
 const laboratorioRepo = require('../data/laboratorioRepository')
 const requisicoesRepo = require('../data/requisicoesRepository')
 const tecnicosTerceirizadosRepo = require('../data/tecnicosTerceirizadosRepository')
+const tecnicosRepo = require('../data/tecnicosRepository')
 
 const router = express.Router()
 
@@ -15,7 +16,7 @@ router.get('/meses', async (req, res) => {
 })
 
 router.get('/tecnicos', async (req, res) => {
-  res.json(await repo.listTecnicos())
+  res.json(await tecnicosRepo.listTecnicos())
 })
 
 router.get('/atendimentos', async (req, res) => {
