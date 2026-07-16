@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Atendimentos — Área Técnica</title>
+<title>Grupos de Produtos — Cadastro</title>
 <link rel="stylesheet" href="styles.css" />
-<link rel="stylesheet" href="atendimentos.css" />
+<link rel="stylesheet" href="grupos-produto.css" />
 <script>
   ;(function() {
     if (sessionStorage.getItem('at-auth') !== 'ok') { window.location.replace('login.html'); }
@@ -34,7 +34,7 @@
   </a>
 
   <div class="sidebar__item">
-    <a href="clientes.html" class="sidebar__link" title="Cadastro">
+    <a href="clientes.html" class="sidebar__link sidebar__link--active" title="Cadastro">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10.5" r="2"/><path d="M5 17c.5-2 2-3 3.5-3s3 1 3.5 3"/><line x1="14" y1="9" x2="19" y2="9"/><line x1="14" y1="12" x2="19" y2="12"/><line x1="14" y1="15" x2="17" y2="15"/></svg>
     </a>
     <div class="sidebar__flyout">
@@ -51,7 +51,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.5 7.3 12 3 3.5 7.3 12 11.6l8.5-4.3z"/><path d="M3.5 7.3v9.4L12 21l8.5-4.3V7.3"/><path d="M12 11.6V21"/></svg>
         Produtos
       </a>
-      <a href="grupos-produto.html" class="sidebar__flyout-item">
+      <a href="grupos-produto.html" class="sidebar__flyout-item sidebar__flyout-item--active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.17L4 3a1 1 0 0 0-1 1l.17 5.59a2 2 0 0 0 .66 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83z"/><circle cx="7" cy="7" r="1.2"/></svg>
         Grupos de Produtos
       </a>
@@ -70,12 +70,12 @@
     </div>
   </div>
   <div class="sidebar__item">
-    <a href="atendimentos.html" class="sidebar__link sidebar__link--active" title="Área Técnica">
+    <a href="atendimentos.html" class="sidebar__link" title="Área Técnica">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
     </a>
     <div class="sidebar__flyout">
       <div class="sidebar__flyout-header">Área Técnica</div>
-      <a href="atendimentos.html" class="sidebar__flyout-item sidebar__flyout-item--active">
+      <a href="atendimentos.html" class="sidebar__flyout-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         Atendimentos
       </a>
@@ -106,16 +106,13 @@
 <header class="header">
   <div class="header-inner">
     <div class="header-brand">
-      <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-      </svg>
+      <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.17L4 3a1 1 0 0 0-1 1l.17 5.59a2 2 0 0 0 .66 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83z"/><circle cx="7" cy="7" r="1.2"/></svg>
       <div class="header-title-group">
-        <h1 class="header-title">Atendimentos</h1>
-        <p class="header-subtitle">Home / Área Técnica / Atendimentos</p>
+        <h1 class="header-title">Grupos de Produtos</h1>
+        <p class="header-subtitle">Home / Cadastro / Grupos de Produtos</p>
       </div>
     </div>
     <div class="header-meta">
-      <select class="filter-select" id="filter-mes" aria-label="Selecionar mês"></select>
       <button class="theme-toggle" id="theme-toggle" aria-label="Alternar tema">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
@@ -126,46 +123,27 @@
 <main class="main">
 
   <section class="section">
-    <div class="tabs-row">
-      <div class="tabs">
-        <button class="tab tab--active" id="tab-remoto" data-tipo="Remoto">Atendimento Remoto</button>
-        <button class="tab" id="tab-presencial" data-tipo="Presencial">Atendimento Presencial</button>
-        <button class="tab" id="tab-laboratorio" data-tipo="Laboratório">Atendimento Laboratório</button>
-      </div>
-      <a class="btn-fab btn-fab--novo" id="btn-novo-atendimento" href="novo-atendimento.html?tipo=Remoto" title="Novo atendimento" aria-label="Novo atendimento">+</a>
-    </div>
-
-    <div class="filters-bar">
-      <input type="text" class="search-input" id="filter-busca" placeholder="Buscar por nome, técnico, defeito, número..." />
-      <select class="filter-select" id="filter-tecnico"><option value="">Todos os técnicos</option></select>
-      <select class="filter-select" id="filter-status">
-        <option value="">Todos os status</option>
-        <option value="Em Atendimento">Em Atendimento</option>
-        <option value="Concluido">Concluído</option>
-        <option value="Cancelado">Cancelado</option>
-      </select>
+    <div class="list-toolbar">
+      <input type="text" class="search-input" id="filter-busca" placeholder="Buscar por nome do grupo..." />
+      <a class="btn-fab" id="btn-novo-grupo" href="novo-grupo-produto.html" title="Novo grupo de produtos" aria-label="Novo grupo de produtos">+</a>
     </div>
 
     <div class="table-wrapper">
       <table class="data-table">
         <thead>
           <tr>
-            <th>Nº</th>
-            <th>Dt Emissão</th>
-            <th>Cliente</th>
-            <th>Defeito</th>
-            <th>Técnico</th>
-            <th>Status</th>
-            <th class="col-acoes"></th>
+            <th>ID</th>
+            <th>Nome do Grupo</th>
+            <th></th>
           </tr>
         </thead>
-        <tbody id="atendimentos-tbody">
-          <tr><td colspan="7" class="table-empty-cell">Carregando...</td></tr>
+        <tbody id="grupos-tbody">
+          <tr><td colspan="3" class="table-empty-cell">Carregando...</td></tr>
         </tbody>
       </table>
     </div>
     <div class="section-header" style="margin-top:8px">
-      <span class="section-badge" id="atendimentos-count-badge">0 atendimentos</span>
+      <span class="section-badge" id="grupos-count-badge">0 grupos</span>
     </div>
   </section>
 
@@ -174,6 +152,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="api-shim.js"></script>
-<script src="atendimentos.js"></script>
+<script src="grupos-produto.js"></script>
 </body>
 </html>

@@ -22,10 +22,6 @@ function setupTheme() {
 
 const state = { produtoId: null, imagem: '' }
 
-// >>> PONTO DE INTEGRAÇÃO <<<: substituir por uma lista real (ou busca via
-// API a uma tabela de grupos) quando os grupos de produtos forem cadastrados.
-const GRUPOS_PRODUTO = []
-
 // ─── Combobox pesquisável (Grupo de Produtos 1/2) ─────────────────────────────
 
 function criarComboSelect(container) {
@@ -109,11 +105,14 @@ function criarComboSelect(container) {
 let comboGrupo1 = null
 let comboGrupo2 = null
 
-function setupGrupos() {
+async function setupGrupos() {
   comboGrupo1 = criarComboSelect(document.getElementById('combo-grupo-1'))
   comboGrupo2 = criarComboSelect(document.getElementById('combo-grupo-2'))
-  comboGrupo1.setOpcoes(GRUPOS_PRODUTO)
-  comboGrupo2.setOpcoes(GRUPOS_PRODUTO)
+
+  const res = await fetch('/api/grupos-produto')
+  const grupos = res.ok ? (await res.json()).map(g => g.nome) : []
+  comboGrupo1.setOpcoes(grupos)
+  comboGrupo2.setOpcoes(grupos)
 }
 
 function exibirPreviewImagem(dataUrl) {
@@ -195,7 +194,7 @@ async function salvarProduto() {
 
 async function init() {
   setupTheme()
-  setupGrupos()
+  await setupGrupos()
   setupImagem()
   document.getElementById('btn-confirmar').addEventListener('click', salvarProduto)
 
