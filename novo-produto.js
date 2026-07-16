@@ -20,7 +20,36 @@ function setupTheme() {
   })
 }
 
-const state = { produtoId: null }
+const state = { produtoId: null, imagem: '' }
+
+function exibirPreviewImagem(dataUrl) {
+  state.imagem = dataUrl || ''
+  const preview = document.getElementById('imagem-preview')
+  const img = document.getElementById('imagem-preview-img')
+  if (dataUrl) {
+    img.src = dataUrl
+    preview.style.display = 'block'
+  } else {
+    img.src = ''
+    preview.style.display = 'none'
+  }
+}
+
+function setupImagem() {
+  const input = document.getElementById('input-imagem')
+  document.getElementById('btn-anexar-imagem').addEventListener('click', () => input.click())
+  input.addEventListener('change', () => {
+    const file = input.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => exibirPreviewImagem(reader.result)
+    reader.readAsDataURL(file)
+  })
+  document.getElementById('btn-remover-imagem').addEventListener('click', () => {
+    input.value = ''
+    exibirPreviewImagem('')
+  })
+}
 
 async function preencherFormulario(id) {
   const res = await fetch(`/api/produtos/${id}`)
@@ -30,6 +59,11 @@ async function preencherFormulario(id) {
   document.getElementById('input-nome').value = p.nome || ''
   document.getElementById('input-valor').value = p.valor || 0
   document.getElementById('input-valor-avista').value = p.valorAvista || 0
+  document.getElementById('select-grupo').value = p.grupo || ''
+  document.getElementById('input-ncm').value = p.ncm || ''
+  document.getElementById('input-juros').value = p.juros || 0
+  document.getElementById('input-controla-estoque').checked = !!p.controlaEstoque
+  exibirPreviewImagem(p.imagem || '')
 
   document.getElementById('page-title').textContent = 'Editar Produto'
   document.getElementById('breadcrumb').textContent = 'Home / Cadastro / Produtos / Editar'
@@ -44,6 +78,11 @@ async function salvarProduto() {
     nome,
     valor: Number(document.getElementById('input-valor').value) || 0,
     valorAvista: Number(document.getElementById('input-valor-avista').value) || 0,
+    grupo: document.getElementById('select-grupo').value,
+    ncm: document.getElementById('input-ncm').value,
+    juros: Number(document.getElementById('input-juros').value) || 0,
+    controlaEstoque: document.getElementById('input-controla-estoque').checked,
+    imagem: state.imagem,
   }
 
   const res = await fetch(state.produtoId ? `/api/produtos/${state.produtoId}` : '/api/produtos', {
@@ -60,6 +99,7 @@ async function salvarProduto() {
 
 async function init() {
   setupTheme()
+  setupImagem()
   document.getElementById('btn-confirmar').addEventListener('click', salvarProduto)
 
   const id = new URLSearchParams(location.search).get('id')
