@@ -26,3 +26,4 @@
 }
 .row-actions__item svg { width: 15px; height: 15px; flex-shrink: 0; }
 .row-actions__item:hover { background: var(--bg-surface); color: var(--text-primary); }
+#row-menu-flutuante { z-index: 300; }
