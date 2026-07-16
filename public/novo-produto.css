@@ -25,6 +25,37 @@
 .checkbox-inline { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--text-primary); cursor: pointer; }
 .checkbox-inline input { width: 16px; height: 16px; cursor: pointer; }
 
+.combo-select { position: relative; }
+.combo-select__box {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  background: var(--bg-input); border: 1px solid var(--border-default); border-radius: var(--radius-sm);
+  color: var(--text-primary); padding: 10px 12px; font-size: 0.9rem; font-family: var(--font);
+  width: 100%; cursor: pointer; user-select: none;
+}
+.combo-select__value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.combo-select__value--placeholder { color: var(--text-muted); }
+.combo-select__arrow { width: 14px; height: 14px; flex-shrink: 0; color: var(--text-muted); transition: transform 0.15s ease; }
+.combo-select--open .combo-select__arrow { transform: rotate(180deg); }
+.combo-select__panel {
+  display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%; width: max-content; max-width: 320px;
+  background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow); z-index: 30; overflow: hidden;
+}
+.combo-select--open .combo-select__panel { display: block; }
+.combo-select__search {
+  width: 100%; border: none; border-bottom: 1px solid var(--border-subtle); background: var(--bg-input);
+  color: var(--text-primary); padding: 10px 12px; font-size: 0.85rem; font-family: var(--font);
+}
+.combo-select__list { max-height: 220px; overflow-y: auto; }
+.combo-select__item {
+  padding: 9px 12px; font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.combo-select__item:hover { background: var(--bg-surface); color: var(--text-primary); }
+.combo-select__item--selected { background: var(--remoto); color: #fff; }
+.combo-select__item--selected:hover { background: var(--remoto); }
+.combo-select__empty { padding: 10px 12px; font-size: 0.82rem; color: var(--text-muted); }
+
 .produto-imagem-row { display: flex; align-items: center; gap: 14px; }
 .anexo-thumb { position: relative; width: 96px; height: 96px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border-subtle); background: var(--bg-surface); flex-shrink: 0; }
 .anexo-thumb img { width: 100%; height: 100%; object-fit: cover; }
