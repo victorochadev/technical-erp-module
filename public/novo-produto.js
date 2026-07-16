@@ -59,7 +59,8 @@ async function preencherFormulario(id) {
   document.getElementById('input-nome').value = p.nome || ''
   document.getElementById('input-valor').value = p.valor || 0
   document.getElementById('input-valor-avista').value = p.valorAvista || 0
-  document.getElementById('select-grupo').value = p.grupo || ''
+  document.getElementById('input-grupo-1').checked = !!p.grupo1
+  document.getElementById('input-grupo-2').checked = !!p.grupo2
   document.getElementById('input-ncm').value = p.ncm || ''
   document.getElementById('input-juros').value = p.juros || 0
   document.getElementById('input-controla-estoque').checked = !!p.controlaEstoque
@@ -78,7 +79,8 @@ async function salvarProduto() {
     nome,
     valor: Number(document.getElementById('input-valor').value) || 0,
     valorAvista: Number(document.getElementById('input-valor-avista').value) || 0,
-    grupo: document.getElementById('select-grupo').value,
+    grupo1: document.getElementById('input-grupo-1').checked,
+    grupo2: document.getElementById('input-grupo-2').checked,
     ncm: document.getElementById('input-ncm').value,
     juros: Number(document.getElementById('input-juros').value) || 0,
     controlaEstoque: document.getElementById('input-controla-estoque').checked,
