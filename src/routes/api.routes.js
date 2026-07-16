@@ -9,6 +9,7 @@ const requisicoesRepo = require('../data/requisicoesRepository')
 const tecnicosTerceirizadosRepo = require('../data/tecnicosTerceirizadosRepository')
 const tecnicosRepo = require('../data/tecnicosRepository')
 const produtosRepo = require('../data/produtosRepository')
+const gruposProdutoRepo = require('../data/gruposProdutoRepository')
 
 const router = express.Router()
 
@@ -192,6 +193,27 @@ router.put('/produtos/:id', async (req, res) => {
   const produto = await produtosRepo.atualizarProduto(req.params.id, req.body)
   if (!produto) return res.status(404).json({ erro: 'Produto não encontrado' })
   res.json(produto)
+})
+
+router.get('/grupos-produto', async (req, res) => {
+  res.json(await gruposProdutoRepo.listGruposProduto())
+})
+
+router.post('/grupos-produto', async (req, res) => {
+  const grupo = await gruposProdutoRepo.criarGrupoProduto(req.body)
+  res.status(201).json(grupo)
+})
+
+router.get('/grupos-produto/:id', async (req, res) => {
+  const grupo = await gruposProdutoRepo.buscarGrupoProdutoPorId(req.params.id)
+  if (!grupo) return res.status(404).json({ erro: 'Grupo de produto não encontrado' })
+  res.json(grupo)
+})
+
+router.put('/grupos-produto/:id', async (req, res) => {
+  const grupo = await gruposProdutoRepo.atualizarGrupoProduto(req.params.id, req.body)
+  if (!grupo) return res.status(404).json({ erro: 'Grupo de produto não encontrado' })
+  res.json(grupo)
 })
 
 module.exports = router

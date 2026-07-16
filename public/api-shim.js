@@ -862,6 +862,45 @@
     return data ? mapProduto(data) : null
   }
 
+  // ───────────────────────── grupos de produto ─────────────────────────
+
+  function mapGrupoProduto(row) {
+    return { id: row.id, nome: row.nome }
+  }
+
+  async function listGruposProduto() {
+    const { data, error } = await sb().from('grupos_produto').select('*').order('nome')
+    if (error) throw error
+    return data.map(mapGrupoProduto)
+  }
+
+  async function buscarGrupoProdutoPorId(id) {
+    const { data, error } = await sb().from('grupos_produto').select('*').eq('id', Number(id)).maybeSingle()
+    if (error) throw error
+    return data ? mapGrupoProduto(data) : null
+  }
+
+  async function criarGrupoProduto(dados) {
+    const { data, error } = await sb()
+      .from('grupos_produto')
+      .insert({ nome: dados.nome || '' })
+      .select()
+      .single()
+    if (error) throw error
+    return mapGrupoProduto(data)
+  }
+
+  async function atualizarGrupoProduto(id, dados) {
+    const { data, error } = await sb()
+      .from('grupos_produto')
+      .update({ nome: dados.nome || '' })
+      .eq('id', Number(id))
+      .select()
+      .maybeSingle()
+    if (error) throw error
+    return data ? mapGrupoProduto(data) : null
+  }
+
   // ───────────────────────── roteador ─────────────────────────
 
   async function route(method, pathname, searchParams, bodyText) {
@@ -1004,6 +1043,23 @@
         if (method === 'PUT') {
           const p = await atualizarProduto(segments[1], body)
           return p ? { status: 200, body: p } : { status: 404, body: { erro: 'Produto não encontrado' } }
+        }
+      }
+    }
+
+    if (segments[0] === 'grupos-produto') {
+      if (segments.length === 1) {
+        if (method === 'GET') return { status: 200, body: await listGruposProduto() }
+        if (method === 'POST') return { status: 201, body: await criarGrupoProduto(body) }
+      }
+      if (segments.length === 2) {
+        if (method === 'GET') {
+          const g = await buscarGrupoProdutoPorId(segments[1])
+          return g ? { status: 200, body: g } : { status: 404, body: { erro: 'Grupo de produto não encontrado' } }
+        }
+        if (method === 'PUT') {
+          const g = await atualizarGrupoProduto(segments[1], body)
+          return g ? { status: 200, body: g } : { status: 404, body: { erro: 'Grupo de produto não encontrado' } }
         }
       }
     }
