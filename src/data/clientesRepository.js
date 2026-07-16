@@ -82,4 +82,30 @@ async function criarCliente(dados) {
   return mapCliente(data)
 }
 
-module.exports = { buscarClientesPorNome, buscarClientePorId, listClientes, criarCliente }
+async function atualizarCliente(id, dados) {
+  const { data, error } = await supabase
+    .from('clientes')
+    .update({
+      razao_social: dados.razaoSocial || '',
+      nome_fantasia: dados.nomeFantasia || dados.razaoSocial || '',
+      cnpj: dados.cnpj || '',
+      ie: dados.ie || '',
+      endereco: dados.endereco || '',
+      cep: dados.cep || '',
+      bairro: dados.bairro || '',
+      cidade: dados.cidade || '',
+      complemento: dados.complemento || '',
+      contato: dados.contato || '',
+      telefone: dados.telefone || '',
+      celular: dados.celular || '',
+      email: dados.email || '',
+      site: dados.site || '',
+    })
+    .eq('id', Number(id))
+    .select()
+    .maybeSingle()
+  if (error) throw error
+  return data ? mapCliente(data) : null
+}
+
+module.exports = { buscarClientesPorNome, buscarClientePorId, listClientes, criarCliente, atualizarCliente }

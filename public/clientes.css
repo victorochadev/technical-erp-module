@@ -7,6 +7,27 @@
 }
 .btn-fab:hover { filter: brightness(1.08); }
 
+.row-actions { position: relative; }
+.row-actions__toggle {
+  width: 30px; height: 30px; border-radius: 6px; border: none; background: none;
+  color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.row-actions__toggle:hover { background: var(--bg-surface); color: var(--text-primary); }
+.row-actions__toggle svg { width: 18px; height: 18px; }
+.row-actions__menu {
+  display: none; position: absolute; right: 0; top: calc(100% + 4px); z-index: 60;
+  background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow); min-width: 100px; overflow: hidden;
+}
+.row-actions__menu--open { display: block; }
+.row-actions__item {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 14px; border: none;
+  background: none; text-align: left; font-size: 0.82rem; font-weight: 600; color: var(--text-secondary);
+  cursor: pointer; font-family: var(--font); text-decoration: none;
+}
+.row-actions__item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.row-actions__item:hover { background: var(--bg-surface); color: var(--text-primary); }
+
 @media (max-width: 768px) {
   .list-toolbar { flex-wrap: wrap; }
   .list-toolbar .search-input { width: 100%; }

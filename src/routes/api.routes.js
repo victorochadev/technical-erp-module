@@ -62,6 +62,12 @@ router.get('/clientes/:id', async (req, res) => {
   res.json(cliente)
 })
 
+router.put('/clientes/:id', async (req, res) => {
+  const cliente = await clientesRepo.atualizarCliente(req.params.id, req.body)
+  if (!cliente) return res.status(404).json({ erro: 'Cliente não encontrado' })
+  res.json(cliente)
+})
+
 router.get('/catalogo/equipamentos', async (req, res) => {
   res.json(await catalogoRepo.buscarEquipamentos(req.query.q))
 })
@@ -158,6 +164,12 @@ router.get('/tecnicos-terceirizados/:id', async (req, res) => {
 router.post('/tecnicos-terceirizados', async (req, res) => {
   const tecnico = await tecnicosTerceirizadosRepo.criarTecnicoTerceirizado(req.body)
   res.status(201).json(tecnico)
+})
+
+router.put('/tecnicos-terceirizados/:id', async (req, res) => {
+  const tecnico = await tecnicosTerceirizadosRepo.atualizarTecnicoTerceirizado(req.params.id, req.body)
+  if (!tecnico) return res.status(404).json({ erro: 'Técnico terceirizado não encontrado' })
+  res.json(tecnico)
 })
 
 module.exports = router

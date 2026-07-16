@@ -47,4 +47,22 @@ async function criarTecnicoTerceirizado(dados) {
   return mapTecnico(data)
 }
 
-module.exports = { listTecnicosTerceirizados, buscarTecnicoTerceirizadoPorId, criarTecnicoTerceirizado }
+async function atualizarTecnicoTerceirizado(id, dados) {
+  const { data, error } = await supabase
+    .from('tecnicos_terceirizados')
+    .update({
+      nome: dados.nome || '',
+      empresa: dados.empresa || '',
+      especialidade: dados.especialidade || '',
+      telefone: dados.telefone || '',
+      email: dados.email || '',
+      cidade: dados.cidade || '',
+    })
+    .eq('id', Number(id))
+    .select()
+    .maybeSingle()
+  if (error) throw error
+  return data ? mapTecnico(data) : null
+}
+
+module.exports = { listTecnicosTerceirizados, buscarTecnicoTerceirizadoPorId, criarTecnicoTerceirizado, atualizarTecnicoTerceirizado }

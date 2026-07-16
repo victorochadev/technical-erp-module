@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="tecnicos-terceirizados.css" />
 <script>
   ;(function() {
-    if (localStorage.getItem('at-auth') !== 'ok') { window.location.replace('login.html'); }
+    if (sessionStorage.getItem('at-auth') !== 'ok') { window.location.replace('login.html'); }
   })()
   ;(function() {
     var saved = localStorage.getItem('at-theme') || 'light'
@@ -130,10 +130,11 @@
             <th>Cidade</th>
             <th>Telefone</th>
             <th>E-mail</th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="tecnicos-tbody">
-          <tr><td colspan="6" class="table-empty-cell">Carregando...</td></tr>
+          <tr><td colspan="7" class="table-empty-cell">Carregando...</td></tr>
         </tbody>
       </table>
     </div>

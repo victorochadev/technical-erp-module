@@ -20,6 +20,33 @@ function setupTheme() {
   })
 }
 
+const state = { clienteId: null }
+
+async function preencherFormulario(id) {
+  const res = await fetch(`/api/clientes/${id}`)
+  if (!res.ok) { showToast('Cliente não encontrado'); return }
+  const c = await res.json()
+
+  document.getElementById('input-razao-social').value = c.razaoSocial || ''
+  document.getElementById('input-nome-fantasia').value = c.nomeFantasia || ''
+  document.getElementById('input-cnpj').value = c.cnpj || ''
+  document.getElementById('input-ie').value = c.ie || ''
+  document.getElementById('input-endereco').value = c.endereco || ''
+  document.getElementById('input-bairro').value = c.bairro || ''
+  document.getElementById('input-cep').value = c.cep || ''
+  document.getElementById('input-cidade').value = c.cidade || ''
+  document.getElementById('input-complemento').value = c.complemento || ''
+  document.getElementById('input-contato').value = c.contato || ''
+  document.getElementById('input-telefone').value = c.telefone || ''
+  document.getElementById('input-celular').value = c.celular || ''
+  document.getElementById('input-email').value = c.email || ''
+  document.getElementById('input-site').value = c.site || ''
+
+  document.getElementById('page-title').textContent = 'Editar Cliente'
+  document.getElementById('breadcrumb').textContent = 'Home / Cadastro / Clientes / Editar'
+  document.getElementById('btn-confirmar').textContent = 'Salvar Alterações'
+}
+
 async function salvarCliente() {
   const razaoSocial = document.getElementById('input-razao-social').value.trim()
   if (!razaoSocial) { showToast('Informe a razão social antes de salvar.'); return }
@@ -41,8 +68,8 @@ async function salvarCliente() {
     site: document.getElementById('input-site').value,
   }
 
-  const res = await fetch('/api/clientes', {
-    method: 'POST',
+  const res = await fetch(state.clienteId ? `/api/clientes/${state.clienteId}` : '/api/clientes', {
+    method: state.clienteId ? 'PUT' : 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
@@ -53,9 +80,15 @@ async function salvarCliente() {
   setTimeout(() => { window.location.href = 'clientes.html' }, 1200)
 }
 
-function init() {
+async function init() {
   setupTheme()
   document.getElementById('btn-confirmar').addEventListener('click', salvarCliente)
+
+  const id = new URLSearchParams(location.search).get('id')
+  if (id) {
+    state.clienteId = id
+    await preencherFormulario(id)
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init)

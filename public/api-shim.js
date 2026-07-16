@@ -87,6 +87,32 @@
     return mapCliente(data)
   }
 
+  async function atualizarCliente(id, dados) {
+    const { data, error } = await sb()
+      .from('clientes')
+      .update({
+        razao_social: dados.razaoSocial || '',
+        nome_fantasia: dados.nomeFantasia || dados.razaoSocial || '',
+        cnpj: dados.cnpj || '',
+        ie: dados.ie || '',
+        endereco: dados.endereco || '',
+        cep: dados.cep || '',
+        bairro: dados.bairro || '',
+        cidade: dados.cidade || '',
+        complemento: dados.complemento || '',
+        contato: dados.contato || '',
+        telefone: dados.telefone || '',
+        celular: dados.celular || '',
+        email: dados.email || '',
+        site: dados.site || '',
+      })
+      .eq('id', Number(id))
+      .select()
+      .maybeSingle()
+    if (error) throw error
+    return data ? mapCliente(data) : null
+  }
+
   // ───────────────────────── técnicos ─────────────────────────
 
   async function listTecnicosInternos() {
@@ -129,6 +155,24 @@
       .single()
     if (error) throw error
     return mapTecnicoTerceirizado(data)
+  }
+
+  async function atualizarTecnicoTerceirizado(id, dados) {
+    const { data, error } = await sb()
+      .from('tecnicos_terceirizados')
+      .update({
+        nome: dados.nome || '',
+        empresa: dados.empresa || '',
+        especialidade: dados.especialidade || '',
+        telefone: dados.telefone || '',
+        email: dados.email || '',
+        cidade: dados.cidade || '',
+      })
+      .eq('id', Number(id))
+      .select()
+      .maybeSingle()
+    if (error) throw error
+    return data ? mapTecnicoTerceirizado(data) : null
   }
 
   // ───────────────────────── catálogo ─────────────────────────
@@ -764,9 +808,15 @@
         if (method === 'GET') return { status: 200, body: await listTecnicosTerceirizados({ busca: searchParams.get('busca') }) }
         if (method === 'POST') return { status: 201, body: await criarTecnicoTerceirizado(body) }
       }
-      if (segments.length === 2 && method === 'GET') {
-        const t = await buscarTecnicoTerceirizadoPorId(segments[1])
-        return t ? { status: 200, body: t } : { status: 404, body: { erro: 'Técnico terceirizado não encontrado' } }
+      if (segments.length === 2) {
+        if (method === 'GET') {
+          const t = await buscarTecnicoTerceirizadoPorId(segments[1])
+          return t ? { status: 200, body: t } : { status: 404, body: { erro: 'Técnico terceirizado não encontrado' } }
+        }
+        if (method === 'PUT') {
+          const t = await atualizarTecnicoTerceirizado(segments[1], body)
+          return t ? { status: 200, body: t } : { status: 404, body: { erro: 'Técnico terceirizado não encontrado' } }
+        }
       }
     }
 
@@ -792,9 +842,15 @@
         if (method === 'GET') return { status: 200, body: await listClientes({ busca: searchParams.get('busca') }) }
         if (method === 'POST') return { status: 201, body: await criarCliente(body) }
       }
-      if (segments.length === 2 && method === 'GET') {
-        const c = await buscarClientePorId(segments[1])
-        return c ? { status: 200, body: c } : { status: 404, body: { erro: 'Cliente não encontrado' } }
+      if (segments.length === 2) {
+        if (method === 'GET') {
+          const c = await buscarClientePorId(segments[1])
+          return c ? { status: 200, body: c } : { status: 404, body: { erro: 'Cliente não encontrado' } }
+        }
+        if (method === 'PUT') {
+          const c = await atualizarCliente(segments[1], body)
+          return c ? { status: 200, body: c } : { status: 404, body: { erro: 'Cliente não encontrado' } }
+        }
       }
     }
 
