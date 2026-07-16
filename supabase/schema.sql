@@ -141,6 +141,14 @@ create table if not exists requisicoes (
   created_at timestamptz not null default now()
 );
 
+create table if not exists produtos (
+  id bigint generated always as identity primary key,
+  nome text not null,
+  valor numeric(12, 2) not null default 0,
+  valor_avista numeric(12, 2) not null default 0,
+  created_at timestamptz not null default now()
+);
+
 -- =========================================================
 -- ROW LEVEL SECURITY
 -- Protótipo interno sem Supabase Auth: libera leitura/escrita para a
@@ -157,7 +165,7 @@ begin
       'clientes', 'tecnicos', 'tecnicos_terceirizados',
       'catalogo_equipamentos', 'catalogo_modelos', 'catalogo_wms',
       'atendimentos', 'instalacoes', 'laboratorio_colunas', 'laboratorio_cards',
-      'requisicoes'
+      'requisicoes', 'produtos'
     ])
   loop
     execute format('alter table %I enable row level security;', t);

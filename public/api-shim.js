@@ -789,6 +789,61 @@
     return { ...mapRequisicao(data), atendimentoVinculadoNumero: numeroVinculado }
   }
 
+  // ───────────────────────── produtos ─────────────────────────
+
+  function mapProduto(row) {
+    return {
+      id: row.id,
+      nome: row.nome,
+      valor: Number(row.valor),
+      valorAvista: Number(row.valor_avista),
+    }
+  }
+
+  async function listProdutos({ busca } = {}) {
+    const { data, error } = await sb().from('produtos').select('*').order('id')
+    if (error) throw error
+    const produtos = data.map(mapProduto)
+    if (!busca) return produtos
+    const alvo = busca.toLowerCase()
+    return produtos.filter(p => p.nome.toLowerCase().includes(alvo))
+  }
+
+  async function buscarProdutoPorId(id) {
+    const { data, error } = await sb().from('produtos').select('*').eq('id', Number(id)).maybeSingle()
+    if (error) throw error
+    return data ? mapProduto(data) : null
+  }
+
+  async function criarProduto(dados) {
+    const { data, error } = await sb()
+      .from('produtos')
+      .insert({
+        nome: dados.nome || '',
+        valor: dados.valor || 0,
+        valor_avista: dados.valorAvista || 0,
+      })
+      .select()
+      .single()
+    if (error) throw error
+    return mapProduto(data)
+  }
+
+  async function atualizarProduto(id, dados) {
+    const { data, error } = await sb()
+      .from('produtos')
+      .update({
+        nome: dados.nome || '',
+        valor: dados.valor || 0,
+        valor_avista: dados.valorAvista || 0,
+      })
+      .eq('id', Number(id))
+      .select()
+      .maybeSingle()
+    if (error) throw error
+    return data ? mapProduto(data) : null
+  }
+
   // ───────────────────────── roteador ─────────────────────────
 
   async function route(method, pathname, searchParams, bodyText) {
@@ -914,6 +969,23 @@
         if (method === 'PUT') {
           const r = await atualizarRequisicao(segments[1], body)
           return r ? { status: 200, body: r } : { status: 404, body: { erro: 'Requisição não encontrada' } }
+        }
+      }
+    }
+
+    if (segments[0] === 'produtos') {
+      if (segments.length === 1) {
+        if (method === 'GET') return { status: 200, body: await listProdutos({ busca: searchParams.get('busca') }) }
+        if (method === 'POST') return { status: 201, body: await criarProduto(body) }
+      }
+      if (segments.length === 2) {
+        if (method === 'GET') {
+          const p = await buscarProdutoPorId(segments[1])
+          return p ? { status: 200, body: p } : { status: 404, body: { erro: 'Produto não encontrado' } }
+        }
+        if (method === 'PUT') {
+          const p = await atualizarProduto(segments[1], body)
+          return p ? { status: 200, body: p } : { status: 404, body: { erro: 'Produto não encontrado' } }
         }
       }
     }

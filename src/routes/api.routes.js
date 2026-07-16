@@ -8,6 +8,7 @@ const laboratorioRepo = require('../data/laboratorioRepository')
 const requisicoesRepo = require('../data/requisicoesRepository')
 const tecnicosTerceirizadosRepo = require('../data/tecnicosTerceirizadosRepository')
 const tecnicosRepo = require('../data/tecnicosRepository')
+const produtosRepo = require('../data/produtosRepository')
 
 const router = express.Router()
 
@@ -170,6 +171,27 @@ router.put('/tecnicos-terceirizados/:id', async (req, res) => {
   const tecnico = await tecnicosTerceirizadosRepo.atualizarTecnicoTerceirizado(req.params.id, req.body)
   if (!tecnico) return res.status(404).json({ erro: 'Técnico terceirizado não encontrado' })
   res.json(tecnico)
+})
+
+router.get('/produtos', async (req, res) => {
+  res.json(await produtosRepo.listProdutos({ busca: req.query.busca }))
+})
+
+router.post('/produtos', async (req, res) => {
+  const produto = await produtosRepo.criarProduto(req.body)
+  res.status(201).json(produto)
+})
+
+router.get('/produtos/:id', async (req, res) => {
+  const produto = await produtosRepo.buscarProdutoPorId(req.params.id)
+  if (!produto) return res.status(404).json({ erro: 'Produto não encontrado' })
+  res.json(produto)
+})
+
+router.put('/produtos/:id', async (req, res) => {
+  const produto = await produtosRepo.atualizarProduto(req.params.id, req.body)
+  if (!produto) return res.status(404).json({ erro: 'Produto não encontrado' })
+  res.json(produto)
 })
 
 module.exports = router
