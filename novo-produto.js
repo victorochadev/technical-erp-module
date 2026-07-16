@@ -22,6 +22,100 @@ function setupTheme() {
 
 const state = { produtoId: null, imagem: '' }
 
+// >>> PONTO DE INTEGRAÇÃO <<<: substituir por uma lista real (ou busca via
+// API a uma tabela de grupos) quando os grupos de produtos forem cadastrados.
+const GRUPOS_PRODUTO = []
+
+// ─── Combobox pesquisável (Grupo de Produtos 1/2) ─────────────────────────────
+
+function criarComboSelect(container) {
+  let opcoes = []
+  let itensFiltrados = []
+  let valorSelecionado = ''
+  let aberto = false
+
+  container.innerHTML = `
+    <div class="combo-select__box" tabindex="0">
+      <span class="combo-select__value combo-select__value--placeholder">Selecione...</span>
+      <svg class="combo-select__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="combo-select__panel">
+      <input type="text" class="combo-select__search" placeholder="Buscar..." />
+      <div class="combo-select__list"></div>
+    </div>
+  `
+
+  const box = container.querySelector('.combo-select__box')
+  const valueEl = container.querySelector('.combo-select__value')
+  const searchInput = container.querySelector('.combo-select__search')
+  const listEl = container.querySelector('.combo-select__list')
+
+  function renderLista(filtro) {
+    const alvo = (filtro || '').toLowerCase()
+    itensFiltrados = opcoes.filter(o => o.toLowerCase().includes(alvo))
+    if (itensFiltrados.length === 0) {
+      listEl.innerHTML = '<div class="combo-select__empty">Nenhum grupo cadastrado</div>'
+      return
+    }
+    listEl.innerHTML = itensFiltrados.map((o, i) => `
+      <div class="combo-select__item${o === valorSelecionado ? ' combo-select__item--selected' : ''}" data-index="${i}">${o}</div>
+    `).join('')
+  }
+
+  function atualizarValue() {
+    if (valorSelecionado) {
+      valueEl.textContent = valorSelecionado
+      valueEl.classList.remove('combo-select__value--placeholder')
+    } else {
+      valueEl.textContent = 'Selecione...'
+      valueEl.classList.add('combo-select__value--placeholder')
+    }
+  }
+
+  function abrir() {
+    aberto = true
+    container.classList.add('combo-select--open')
+    searchInput.value = ''
+    renderLista('')
+    searchInput.focus()
+  }
+
+  function fechar() {
+    aberto = false
+    container.classList.remove('combo-select--open')
+  }
+
+  box.addEventListener('click', () => { aberto ? fechar() : abrir() })
+  searchInput.addEventListener('input', () => renderLista(searchInput.value))
+  searchInput.addEventListener('keydown', e => { if (e.key === 'Escape') fechar() })
+  listEl.addEventListener('click', e => {
+    const item = e.target.closest('.combo-select__item')
+    if (!item) return
+    valorSelecionado = itensFiltrados[Number(item.dataset.index)]
+    atualizarValue()
+    fechar()
+  })
+  document.addEventListener('click', e => {
+    if (!container.contains(e.target)) fechar()
+  })
+
+  return {
+    setOpcoes(lista) { opcoes = lista },
+    setValor(v) { valorSelecionado = v || ''; atualizarValue() },
+    getValor() { return valorSelecionado },
+  }
+}
+
+let comboGrupo1 = null
+let comboGrupo2 = null
+
+function setupGrupos() {
+  comboGrupo1 = criarComboSelect(document.getElementById('combo-grupo-1'))
+  comboGrupo2 = criarComboSelect(document.getElementById('combo-grupo-2'))
+  comboGrupo1.setOpcoes(GRUPOS_PRODUTO)
+  comboGrupo2.setOpcoes(GRUPOS_PRODUTO)
+}
+
 function exibirPreviewImagem(dataUrl) {
   state.imagem = dataUrl || ''
   const preview = document.getElementById('imagem-preview')
@@ -59,8 +153,8 @@ async function preencherFormulario(id) {
   document.getElementById('input-nome').value = p.nome || ''
   document.getElementById('input-valor').value = p.valor || 0
   document.getElementById('input-valor-avista').value = p.valorAvista || 0
-  document.getElementById('input-grupo-1').checked = !!p.grupo1
-  document.getElementById('input-grupo-2').checked = !!p.grupo2
+  comboGrupo1.setValor(p.grupo1)
+  comboGrupo2.setValor(p.grupo2)
   document.getElementById('input-ncm').value = p.ncm || ''
   document.getElementById('input-juros').value = p.juros || 0
   document.getElementById('input-controla-estoque').checked = !!p.controlaEstoque
@@ -79,8 +173,8 @@ async function salvarProduto() {
     nome,
     valor: Number(document.getElementById('input-valor').value) || 0,
     valorAvista: Number(document.getElementById('input-valor-avista').value) || 0,
-    grupo1: document.getElementById('input-grupo-1').checked,
-    grupo2: document.getElementById('input-grupo-2').checked,
+    grupo1: comboGrupo1.getValor(),
+    grupo2: comboGrupo2.getValor(),
     ncm: document.getElementById('input-ncm').value,
     juros: Number(document.getElementById('input-juros').value) || 0,
     controlaEstoque: document.getElementById('input-controla-estoque').checked,
@@ -101,6 +195,7 @@ async function salvarProduto() {
 
 async function init() {
   setupTheme()
+  setupGrupos()
   setupImagem()
   document.getElementById('btn-confirmar').addEventListener('click', salvarProduto)
 
