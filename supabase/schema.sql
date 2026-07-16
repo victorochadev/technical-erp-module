@@ -146,6 +146,11 @@ create table if not exists produtos (
   nome text not null,
   valor numeric(12, 2) not null default 0,
   valor_avista numeric(12, 2) not null default 0,
+  controla_estoque boolean not null default false,
+  grupo text,
+  ncm text,
+  juros numeric(5, 2) not null default 0,
+  imagem text,
   created_at timestamptz not null default now()
 );
 

@@ -131,6 +131,40 @@
       <label class="field-label">Valor à Vista</label>
       <input type="number" step="0.01" min="0" class="field-input" id="input-valor-avista" placeholder="0,00" />
     </div>
+    <div class="field-block">
+      <label class="field-label">Grupo de Produtos</label>
+      <select class="field-input" id="select-grupo">
+        <option value="">Selecione...</option>
+        <option value="Grupo 1">Grupo 1</option>
+        <option value="Grupo 2">Grupo 2</option>
+      </select>
+    </div>
+    <div class="field-block">
+      <label class="field-label">NCM</label>
+      <input type="text" class="field-input" id="input-ncm" placeholder="0000.00.00" />
+    </div>
+    <div class="field-block">
+      <label class="field-label">Juros</label>
+      <input type="number" step="0.01" min="0" class="field-input" id="input-juros" placeholder="Juros na compra parcelada (%)" />
+    </div>
+    <div class="field-block">
+      <label class="field-label">Estoque</label>
+      <label class="checkbox-inline">
+        <input type="checkbox" id="input-controla-estoque" />
+        Controlar Estoque
+      </label>
+    </div>
+    <div class="field-block field-block--wide">
+      <label class="field-label">Imagem do Produto</label>
+      <div class="produto-imagem-row">
+        <div class="anexo-thumb" id="imagem-preview" style="display:none">
+          <img id="imagem-preview-img" src="" alt="Imagem do produto" />
+          <button type="button" class="anexo-thumb__remove" id="btn-remover-imagem" aria-label="Remover">✕</button>
+        </div>
+        <button type="button" class="btn btn--ghost" id="btn-anexar-imagem">Anexar Imagem</button>
+        <input type="file" id="input-imagem" accept="image/*" hidden />
+      </div>
+    </div>
   </div>
 
   <div class="form-footer">

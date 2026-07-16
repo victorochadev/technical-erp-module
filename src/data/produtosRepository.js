@@ -9,6 +9,11 @@ function mapProduto(row) {
     nome: row.nome,
     valor: Number(row.valor),
     valorAvista: Number(row.valor_avista),
+    controlaEstoque: row.controla_estoque,
+    grupo: row.grupo || '',
+    ncm: row.ncm || '',
+    juros: Number(row.juros),
+    imagem: row.imagem || '',
   }
 }
 
@@ -34,6 +39,11 @@ async function criarProduto(dados) {
       nome: dados.nome || '',
       valor: dados.valor || 0,
       valor_avista: dados.valorAvista || 0,
+      controla_estoque: !!dados.controlaEstoque,
+      grupo: dados.grupo || '',
+      ncm: dados.ncm || '',
+      juros: dados.juros || 0,
+      imagem: dados.imagem || '',
     })
     .select()
     .single()
@@ -48,6 +58,11 @@ async function atualizarProduto(id, dados) {
       nome: dados.nome || '',
       valor: dados.valor || 0,
       valor_avista: dados.valorAvista || 0,
+      controla_estoque: !!dados.controlaEstoque,
+      grupo: dados.grupo || '',
+      ncm: dados.ncm || '',
+      juros: dados.juros || 0,
+      imagem: dados.imagem || '',
     })
     .eq('id', Number(id))
     .select()
