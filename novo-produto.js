@@ -11,6 +11,11 @@ function showToast(message) {
   }, 3500)
 }
 
+function mostrarPopup(mensagem) {
+  document.getElementById('popup-mensagem').textContent = mensagem
+  document.getElementById('popup-overlay').classList.add('popup-overlay--show')
+}
+
 function setupTheme() {
   document.getElementById('theme-toggle').addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme')
@@ -186,10 +191,11 @@ async function salvarProduto() {
     body: JSON.stringify(payload),
   })
   if (!res.ok) { showToast('Não foi possível salvar o produto.'); return }
-  const produto = await res.json()
+  await res.json()
 
-  showToast(`Produto "${produto.nome}" salvo.`)
-  setTimeout(() => { window.location.href = 'produtos.html' }, 1200)
+  const mensagem = state.produtoId ? 'ATENÇÃO! PRODUTO ATUALIZADO COM SUCESSO!' : 'ATENÇÃO! PRODUTO CRIADO COM SUCESSO!'
+  mostrarPopup(mensagem)
+  setTimeout(() => { window.location.href = 'produtos.html' }, 1800)
 }
 
 async function init() {
