@@ -1,9 +1,10 @@
 const state = {
   mes: null,
-  calendarTipo: 'Remoto',
+  desempenhoTipo: 'Laboratório',
 }
 
 const MESES_PT = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
+const DIAS_SEMANA_PT = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
 
 function mesLabel(mes) {
   const [ano, mm] = mes.split('-')
@@ -44,130 +45,129 @@ async function loadMeses() {
   })
 }
 
+function qsMes() {
+  return state.mes ? `?mes=${state.mes}` : ''
+}
+
 async function renderResumo() {
-  const resumo = await fetchJson(`/api/dashboard/resumo?mes=${state.mes}`)
+  const resumo = await fetchJson(`/api/dashboard/resumo${qsMes()}`)
 
   document.getElementById('kpi-total').textContent = resumo.total
-  document.getElementById('kpi-mes-label').textContent = mesLabel(resumo.mes)
 
-  document.getElementById('tipo-remoto-count').textContent = resumo.porTipo.remoto.total
-  document.getElementById('tipo-remoto-pct').textContent = `${resumo.porTipo.remoto.percentual}%`
   document.getElementById('tipo-presencial-count').textContent = resumo.porTipo.presencial.total
   document.getElementById('tipo-presencial-pct').textContent = `${resumo.porTipo.presencial.percentual}%`
+  document.getElementById('tipo-remoto-count').textContent = resumo.porTipo.remoto.total
+  document.getElementById('tipo-remoto-pct').textContent = `${resumo.porTipo.remoto.percentual}%`
+  document.getElementById('tipo-laboratorio-count').textContent = resumo.porTipo.laboratorio.total
+  document.getElementById('tipo-laboratorio-pct').textContent = `${resumo.porTipo.laboratorio.percentual}%`
 
   setDonut(document.getElementById('donut-tipo'), [
-    { percentual: resumo.porTipo.remoto.percentual, color: 'var(--remoto)' },
     { percentual: resumo.porTipo.presencial.percentual, color: 'var(--presencial)' },
+    { percentual: resumo.porTipo.remoto.percentual, color: 'var(--remoto)' },
+    { percentual: resumo.porTipo.laboratorio.percentual, color: 'var(--laboratorio)' },
   ])
 
   document.getElementById('status-concluido-count').textContent = resumo.porStatus.concluido.total
-  document.getElementById('status-concluido-pct').textContent = `${resumo.porStatus.concluido.percentual}%`
+  document.getElementById('status-concluido-hint').textContent = `${resumo.porStatus.concluido.percentual}% do total no mês`
   document.getElementById('status-em-count').textContent = resumo.porStatus.emAtendimento.total
-  document.getElementById('status-em-pct').textContent = `${resumo.porStatus.emAtendimento.percentual}%`
+  document.getElementById('status-em-hint').textContent = `${resumo.porStatus.emAtendimento.percentual}% do total no mês`
   document.getElementById('status-cancelado-count').textContent = resumo.porStatus.cancelado.total
-  document.getElementById('status-cancelado-pct').textContent = `${resumo.porStatus.cancelado.percentual}%`
-
-  setDonut(document.getElementById('donut-status'), [
-    { percentual: resumo.porStatus.concluido.percentual, color: 'var(--concluido)' },
-    { percentual: resumo.porStatus.emAtendimento.percentual, color: 'var(--emandamento)' },
-    { percentual: resumo.porStatus.cancelado.percentual, color: 'var(--cancelado)' },
-  ])
+  document.getElementById('status-cancelado-hint').textContent = `${resumo.porStatus.cancelado.percentual}% do total no mês`
 }
 
-async function renderRanking() {
-  const ranking = await fetchJson(`/api/dashboard/por-tecnico?mes=${state.mes}`)
-  const tbody = document.getElementById('ranking-tbody')
-  document.getElementById('ranking-count-badge').textContent = `${ranking.length} técnico${ranking.length !== 1 ? 's' : ''}`
+function iniciaisTecnico(nome) {
+  return nome.split(' ').filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase()
+}
 
-  if (ranking.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="table-empty-cell">Nenhum atendimento no período</td></tr>'
+const CAMPO_POR_TIPO = { 'Laboratório': 'laboratorio', 'Remoto': 'remoto', 'Presencial': 'presencial' }
+
+async function renderDesempenho() {
+  const ranking = await fetchJson(`/api/dashboard/por-tecnico${qsMes()}`)
+  const campo = CAMPO_POR_TIPO[state.desempenhoTipo]
+  const lista = ranking.filter(r => r[campo] > 0).sort((a, b) => b[campo] - a[campo])
+
+  const container = document.getElementById('tech-list')
+  if (lista.length === 0) {
+    container.innerHTML = '<div class="agenda-empty">Nenhum atendimento deste tipo no período</div>'
     return
   }
 
-  const max = Math.max(...ranking.map(r => r.total))
-  tbody.innerHTML = ranking.map(r => `
-    <tr>
-      <td>${r.tecnico}</td>
-      <td class="col-volume">
-        <div class="volume-bar-track"><div class="volume-bar-fill" style="width:${Math.round((r.total / max) * 100)}%"></div></div>
-      </td>
-      <td><b>${r.total}</b></td>
-      <td>${r.remoto}</td>
-      <td>${r.presencial}</td>
-      <td>${r.concluido}</td>
-      <td>${r.emAtendimento}</td>
-      <td>${r.cancelado}</td>
-    </tr>
+  container.innerHTML = lista.map(r => `
+    <div class="tech-row">
+      <div class="tech-row__left">
+        <div class="tech-avatar">${iniciaisTecnico(r.tecnico)}</div>
+        <div class="tech-info">
+          <div class="tech-name">${r.tecnico}</div>
+          <div class="tech-count">${r[campo]} atendimento${r[campo] !== 1 ? 's' : ''}</div>
+        </div>
+      </div>
+      <div class="tech-rating">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        ${r.nota.toFixed(1)}
+      </div>
+    </div>
   `).join('')
 }
 
-function buildCalendarCells(mes, eventosPorDia) {
-  const [ano, mm] = mes.split('-').map(Number)
-  const primeiroDia = new Date(ano, mm - 1, 1)
-  const diasNoMes = new Date(ano, mm, 0).getDate()
-  const diaSemanaInicio = primeiroDia.getDay()
-  const totalCelulas = Math.ceil((diaSemanaInicio + diasNoMes) / 7) * 7
+function setupDesempenhoTabs() {
+  const tabs = document.querySelectorAll('#desempenho-tabs .tab')
+  tabs.forEach(tab => tab.addEventListener('click', () => {
+    state.desempenhoTipo = tab.dataset.tipo
+    tabs.forEach(t => t.classList.toggle('tab--active', t === tab))
+    renderDesempenho()
+  }))
+}
 
-  const cells = []
-  for (let i = 0; i < totalCelulas; i++) {
-    const diaNum = i - diaSemanaInicio + 1
-    if (diaNum < 1 || diaNum > diasNoMes) {
-      cells.push({ muted: true })
-    } else {
-      const chave = `${mes}-${String(diaNum).padStart(2, '0')}`
-      cells.push({ muted: false, dia: diaNum, eventos: eventosPorDia[chave] || [] })
-    }
+function chipClasseTipo(tipo) {
+  if (tipo === 'Remoto') return 'chip--remoto'
+  if (tipo === 'Presencial') return 'chip--presencial'
+  return 'chip--laboratorio'
+}
+
+async function renderAgendaSemana() {
+  if (!state.mes) {
+    document.getElementById('agenda-list').innerHTML = '<div class="agenda-empty">Nenhum atendimento cadastrado</div>'
+    return
   }
-  return cells
-}
 
-function renderEventoCalendario(a) {
-  const tipoClass = a.tipo === 'Remoto' ? 'calendar-event--remoto' : 'calendar-event--presencial'
-  const corBorda = { 'Concluido': 'var(--concluido)', 'Em Atendimento': 'var(--emandamento)', 'Cancelado': 'var(--cancelado)' }[a.status] || 'transparent'
-  return `
-    <a href="novo-atendimento.html?id=${a.id}" class="calendar-event ${tipoClass}" style="border-left-color:${corBorda}" title="${a.tecnico} — ${a.cliente} (${a.status})">
-      <span class="calendar-event__tecnico">${a.tecnico}</span>
-      <span class="calendar-event__cliente">${a.cliente}</span>
-    </a>
-  `
-}
+  const atendimentos = await fetchJson(`/api/atendimentos${qsMes()}`)
 
-async function renderCalendario() {
-  const atendimentos = await fetchJson(`/api/atendimentos?mes=${state.mes}&tipo=${state.calendarTipo}`)
-
-  const eventosPorDia = {}
+  const inicio = `${state.mes}-01`
+  const fim = `${state.mes}-07`
+  const porDia = new Map()
   atendimentos.forEach(a => {
-    const chave = (a.ida || a.dtEmissao).slice(0, 10)
-    if (!eventosPorDia[chave]) eventosPorDia[chave] = []
-    eventosPorDia[chave].push(a)
+    const dataRef = (a.ida || a.dtEmissao).slice(0, 10)
+    if (dataRef < inicio || dataRef > fim) return
+    if (!porDia.has(dataRef)) porDia.set(dataRef, [])
+    porDia.get(dataRef).push(a)
   })
 
-  const cells = buildCalendarCells(state.mes, eventosPorDia)
-  const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+  const dias = [...porDia.keys()].sort()
+  const container = document.getElementById('agenda-list')
 
-  const headerHtml = weekdays.map(w => `<div class="calendar-weekday">${w}</div>`).join('')
-  const cellsHtml = cells.map(c => {
-    if (c.muted) return '<div class="calendar-day calendar-day--muted"></div>'
-    return `<div class="calendar-day"><span class="calendar-day__number">${c.dia}</span>${c.eventos.map(renderEventoCalendario).join('')}</div>`
-  }).join('')
-
-  document.getElementById('calendar-grid').innerHTML = headerHtml + cellsHtml
-  document.getElementById('calendario-mes-label').textContent = `${atendimentos.length} atendimento${atendimentos.length !== 1 ? 's' : ''}`
-}
-
-function setupCalendarTabs() {
-  const tabRemoto = document.getElementById('cal-tab-remoto')
-  const tabPresencial = document.getElementById('cal-tab-presencial')
-
-  function selecionar(tipo) {
-    state.calendarTipo = tipo
-    tabRemoto.classList.toggle('tab--active', tipo === 'Remoto')
-    tabPresencial.classList.toggle('tab--active', tipo === 'Presencial')
-    renderCalendario()
+  if (dias.length === 0) {
+    container.innerHTML = '<div class="agenda-empty">Nenhum atendimento agendado nesta semana</div>'
+    return
   }
 
-  tabRemoto.addEventListener('click', () => selecionar('Remoto'))
-  tabPresencial.addEventListener('click', () => selecionar('Presencial'))
+  container.innerHTML = dias.map(dataRef => {
+    const eventos = porDia.get(dataRef).slice().sort((a, b) => (a.ida || '').localeCompare(b.ida || ''))
+    const [ano, mm, dd] = dataRef.split('-')
+    const diaSemana = DIAS_SEMANA_PT[new Date(`${dataRef}T00:00:00`).getDay()]
+    const itensHtml = eventos.map(a => `
+      <div class="agenda-item">
+        <span class="agenda-time">${a.ida ? a.ida.slice(11, 16) : '—'}</span>
+        <span class="agenda-title"><b>${a.cliente || 'Cliente'}</b> | Téc. ${a.tecnico || '—'}</span>
+        <span class="chip ${chipClasseTipo(a.tipo)}">${a.tipo}</span>
+      </div>
+    `).join('')
+    return `
+      <div class="agenda-day">
+        <div class="agenda-day__title">${diaSemana}, ${dd}/${mm}</div>
+        ${itensHtml}
+      </div>
+    `
+  }).join('')
 }
 
 function setupTheme() {
@@ -180,12 +180,12 @@ function setupTheme() {
 }
 
 async function renderAll() {
-  await Promise.all([renderResumo(), renderRanking(), renderCalendario()])
+  await Promise.all([renderResumo(), renderDesempenho(), renderAgendaSemana()])
 }
 
 async function init() {
   setupTheme()
-  setupCalendarTabs()
+  setupDesempenhoTabs()
   await loadMeses()
   await renderAll()
 }

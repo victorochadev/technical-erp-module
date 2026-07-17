@@ -4,12 +4,21 @@ function pct(n, total) {
   return total === 0 ? 0 : Math.round((n / total) * 1000) / 10
 }
 
+// Nota fictícia e estável por técnico (sem cadastro de avaliação real ainda) —
+// apenas para preencher o visual de "Desempenho por Técnico" no dashboard.
+function notaFicticia(nome) {
+  let hash = 0
+  for (let i = 0; i < nome.length; i++) hash = (hash * 31 + nome.charCodeAt(i)) % 1000
+  return Math.round((2 + (hash / 1000) * 3) * 10) / 10
+}
+
 async function getResumoMensal(mes) {
   const atendimentos = await repo.listAtendimentos({ mes })
   const total = atendimentos.length
 
   const remoto = atendimentos.filter(a => a.tipo === 'Remoto').length
   const presencial = atendimentos.filter(a => a.tipo === 'Presencial').length
+  const laboratorio = atendimentos.filter(a => a.tipo === 'Laboratório').length
 
   const concluido = atendimentos.filter(a => a.status === 'Concluido').length
   const cancelado = atendimentos.filter(a => a.status === 'Cancelado').length
@@ -21,6 +30,7 @@ async function getResumoMensal(mes) {
     porTipo: {
       remoto: { total: remoto, percentual: pct(remoto, total) },
       presencial: { total: presencial, percentual: pct(presencial, total) },
+      laboratorio: { total: laboratorio, percentual: pct(laboratorio, total) },
     },
     porStatus: {
       concluido: { total: concluido, percentual: pct(concluido, total) },
@@ -38,9 +48,11 @@ async function getRankingPorTecnico(mes) {
     if (!porTecnico.has(a.tecnico)) {
       porTecnico.set(a.tecnico, {
         tecnico: a.tecnico,
+        nota: notaFicticia(a.tecnico),
         total: 0,
         remoto: 0,
         presencial: 0,
+        laboratorio: 0,
         concluido: 0,
         cancelado: 0,
         emAtendimento: 0,
@@ -50,6 +62,7 @@ async function getRankingPorTecnico(mes) {
     linha.total += 1
     if (a.tipo === 'Remoto') linha.remoto += 1
     if (a.tipo === 'Presencial') linha.presencial += 1
+    if (a.tipo === 'Laboratório') linha.laboratorio += 1
     if (a.status === 'Concluido') linha.concluido += 1
     if (a.status === 'Cancelado') linha.cancelado += 1
     if (a.status === 'Em Atendimento') linha.emAtendimento += 1
