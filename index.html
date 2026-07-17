@@ -18,19 +18,8 @@
 <body>
 
 <nav class="sidebar" aria-label="Módulos do ERP">
-  <a href="#" class="sidebar__logo" title="BM1 ERP">
-    <svg viewBox="0 0 24 24">
-      <defs>
-        <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#14b8a6"/>
-          <stop offset="50%" stop-color="#6d5bd0"/>
-          <stop offset="100%" stop-color="#e0607a"/>
-        </linearGradient>
-      </defs>
-      <circle cx="12" cy="12" r="11" fill="url(#logoGrad)"/>
-      <path d="M8 7v10M8 7c3 0 5 1.2 5 3s-2 3-5 3M8 13c3.5 0 6 1.3 6 3.5" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-    </svg>
-  </a>
+  <div class="sidebar__avatar" title="Victor Rocha">VR</div>
+  <div class="sidebar__divider"></div>
 
   <div class="sidebar__item">
     <a href="clientes.html" class="sidebar__link" title="Cadastro">
@@ -105,12 +94,10 @@
 <header class="header">
   <div class="header-inner">
     <div class="header-brand">
-      <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>
-      </svg>
       <div class="header-title-group">
-        <h1 class="header-title">Dashboard</h1>
-        <p class="header-subtitle">Home / Área Técnica / Dashboard</p>
+        <p class="header-eyebrow">ERP Módulo Técnico</p>
+        <h1 class="header-title">Painel de Atendimentos | Dashboard</h1>
+        <p class="header-subtitle">Visão geral dos atendimentos técnicos, equipe e agenda da semana.</p>
       </div>
     </div>
     <div class="header-meta">
@@ -124,87 +111,61 @@
 
 <main class="main">
 
-  <!-- KPI CARDS -->
-  <section class="kpi-section" aria-label="Indicadores do mês">
-    <div class="kpi-grid">
-
-      <div class="card kpi-card kpi-card--total">
-        <span class="kpi-card__label">Total de Atendimentos</span>
-        <span class="kpi-card__big" id="kpi-total">—</span>
-        <span class="kpi-card__hint" id="kpi-mes-label"></span>
-      </div>
-
-      <div class="card kpi-card">
-        <span class="kpi-card__label">Tipo de Atendimento</span>
-        <div class="donut-row">
-          <div class="donut" id="donut-tipo"></div>
-          <div class="donut-legend">
-            <div class="legend-item"><span class="legend-dot legend-dot--remoto"></span>Remoto <b id="tipo-remoto-count">0</b> <span class="legend-pct" id="tipo-remoto-pct"></span></div>
-            <div class="legend-item"><span class="legend-dot legend-dot--presencial"></span>Presencial <b id="tipo-presencial-count">0</b> <span class="legend-pct" id="tipo-presencial-pct"></span></div>
-          </div>
+  <div class="dashboard-grid">
+    <section class="card" aria-label="Atendimentos por tipo">
+      <h2 class="section-title">Atendimentos por Tipo</h2>
+      <div class="donut-row">
+        <div class="donut" id="donut-tipo">
+          <span class="donut-total" id="kpi-total">—</span>
+        </div>
+        <div class="donut-legend">
+          <div class="legend-item"><span class="legend-dot legend-dot--presencial"></span>Presencial <b id="tipo-presencial-count">0</b> <span class="legend-pct" id="tipo-presencial-pct"></span></div>
+          <div class="legend-item"><span class="legend-dot legend-dot--remoto"></span>Remoto <b id="tipo-remoto-count">0</b> <span class="legend-pct" id="tipo-remoto-pct"></span></div>
+          <div class="legend-item"><span class="legend-dot legend-dot--laboratorio"></span>Laboratório <b id="tipo-laboratorio-count">0</b> <span class="legend-pct" id="tipo-laboratorio-pct"></span></div>
         </div>
       </div>
+    </section>
 
-      <div class="card kpi-card">
-        <span class="kpi-card__label">Status dos Atendimentos</span>
-        <div class="donut-row">
-          <div class="donut" id="donut-status"></div>
-          <div class="donut-legend">
-            <div class="legend-item"><span class="legend-dot legend-dot--concluido"></span>Concluído <b id="status-concluido-count">0</b> <span class="legend-pct" id="status-concluido-pct"></span></div>
-            <div class="legend-item"><span class="legend-dot legend-dot--emandamento"></span>Em Atendimento <b id="status-em-count">0</b> <span class="legend-pct" id="status-em-pct"></span></div>
-            <div class="legend-item"><span class="legend-dot legend-dot--cancelado"></span>Cancelado <b id="status-cancelado-count">0</b> <span class="legend-pct" id="status-cancelado-pct"></span></div>
-          </div>
+    <section class="card" aria-label="Status dos atendimentos">
+      <h2 class="section-title">Status dos Atendimentos</h2>
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-card__label"><span class="stat-card__dot stat-card__dot--concluido"></span>Concluídos</span>
+          <span class="stat-card__big" id="status-concluido-count">0</span>
+          <span class="stat-card__hint" id="status-concluido-hint"></span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card__label"><span class="stat-card__dot stat-card__dot--emandamento"></span>Em andamento</span>
+          <span class="stat-card__big" id="status-em-count">0</span>
+          <span class="stat-card__hint" id="status-em-hint"></span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card__label"><span class="stat-card__dot stat-card__dot--cancelado"></span>Cancelados</span>
+          <span class="stat-card__big" id="status-cancelado-count">0</span>
+          <span class="stat-card__hint" id="status-cancelado-hint"></span>
         </div>
       </div>
+    </section>
+  </div>
 
-    </div>
-  </section>
-
-  <!-- RANKING POR TÉCNICO -->
-  <section class="section" aria-label="Atendimentos por técnico">
-    <div class="section-header">
-      <h2 class="section-title">Atendimentos por Técnico</h2>
-      <span class="section-badge" id="ranking-count-badge">0 técnicos</span>
-    </div>
-    <div class="table-wrapper">
-      <table class="data-table" id="ranking-table">
-        <thead>
-          <tr>
-            <th class="col-tecnico">Técnico</th>
-            <th class="col-volume">Volume</th>
-            <th>Total</th>
-            <th>Remoto</th>
-            <th>Presencial</th>
-            <th>Concluído</th>
-            <th>Em Atend.</th>
-            <th>Cancelado</th>
-          </tr>
-        </thead>
-        <tbody id="ranking-tbody">
-          <tr><td colspan="8" class="table-empty-cell">Carregando...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- CALENDÁRIO -->
-  <section class="section" aria-label="Calendário de atendimentos">
-    <div class="tabs-row">
-      <div class="tabs">
-        <button class="tab tab--active" id="cal-tab-remoto" data-tipo="Remoto">Atendimento Remoto</button>
-        <button class="tab" id="cal-tab-presencial" data-tipo="Presencial">Atendimento Presencial</button>
+  <div class="dashboard-grid">
+    <section class="card" aria-label="Desempenho por técnico">
+      <h2 class="section-title">Desempenho por Técnico</h2>
+      <div class="tabs-row" style="margin-top:12px">
+        <div class="tabs" id="desempenho-tabs">
+          <button class="tab tab--active" data-tipo="Laboratório">Laboratório</button>
+          <button class="tab" data-tipo="Remoto">Remoto</button>
+          <button class="tab" data-tipo="Presencial">Presencial</button>
+        </div>
       </div>
-      <span class="section-badge" id="calendario-mes-label"></span>
-    </div>
-    <div class="calendar-legend">
-      <span class="legend-item"><span class="legend-dot legend-dot--concluido"></span>Concluído (borda)</span>
-      <span class="legend-item"><span class="legend-dot legend-dot--emandamento"></span>Em Atendimento (borda)</span>
-      <span class="legend-item"><span class="legend-dot legend-dot--cancelado"></span>Cancelado (borda)</span>
-    </div>
-    <div class="calendar-scroll">
-      <div class="calendar-grid" id="calendar-grid"></div>
-    </div>
-  </section>
+      <div class="tech-list" id="tech-list"></div>
+    </section>
+
+    <section class="card" aria-label="Agenda da semana">
+      <h2 class="section-title">Agenda da Semana</h2>
+      <div class="agenda-list" id="agenda-list"></div>
+    </section>
+  </div>
 
 </main>
 
