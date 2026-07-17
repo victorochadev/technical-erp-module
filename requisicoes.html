@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="requisicoes.css" />
 <script>
   ;(function() {
-    if (sessionStorage.getItem('at-auth') !== 'ok') { window.location.replace('login.html'); }
+    if (sessionStorage.getItem('at-auth') !== 'ok' && localStorage.getItem('at-auth') !== 'ok') { window.location.replace('login.html'); }
   })()
   ;(function() {
     var saved = localStorage.getItem('at-theme') || 'light'

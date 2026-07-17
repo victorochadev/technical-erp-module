@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Entrar — Vegas ERP</title>
+<title>Login - ERP Módulo Técnico</title>
 <link rel="stylesheet" href="styles.css" />
 <link rel="stylesheet" href="login.css" />
 <script>
@@ -13,37 +13,46 @@
   })()
 </script>
 </head>
-<body>
+<body class="login-page">
 
-<div class="card login-card">
-  <div class="login-logo">
-    <svg viewBox="0 0 24 24">
-      <defs>
-        <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#14b8a6"/>
-          <stop offset="50%" stop-color="#6d5bd0"/>
-          <stop offset="100%" stop-color="#e0607a"/>
-        </linearGradient>
-      </defs>
-      <circle cx="12" cy="12" r="11" fill="url(#logoGrad)"/>
-      <path d="M8 7v10M8 7c3 0 5 1.2 5 3s-2 3-5 3M8 13c3.5 0 6 1.3 6 3.5" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-    </svg>
-  </div>
-  <div class="login-title">Vegas ERP</div>
-  <div class="login-subtitle">Entre com suas credenciais para acessar o protótipo</div>
+<div class="login-split">
+  <aside class="login-hero">
+    <div class="login-hero__eyebrow">Módulo Técnico · Protótipo</div>
+    <h1 class="login-hero__title">ERP Módulo Técnico</h1>
+    <p class="login-hero__desc">Gestão de ordens de serviço, equipes e ativos técnicos em um único painel, do agendamento à conclusão.</p>
+  </aside>
 
-  <form class="login-form" id="login-form">
-    <div class="field">
-      <label class="field-label" for="input-usuario">Usuário</label>
-      <input type="text" class="field-input" id="input-usuario" autocomplete="username" autofocus />
+  <section class="login-panel">
+    <div class="login-card">
+      <h2 class="login-card__title">Bem-vindo de volta</h2>
+      <p class="login-card__subtitle">Acesse com suas credenciais técnicas para continuar.</p>
+
+      <form class="login-form" id="login-form">
+        <div class="login-field">
+          <label class="login-field__label" for="input-usuario">Usuário ou e-mail</label>
+          <input type="text" class="login-field__input" id="input-usuario" placeholder="tecnico@empresa.com" autocomplete="username" autofocus />
+        </div>
+        <div class="login-field">
+          <label class="login-field__label" for="input-senha">Senha</label>
+          <input type="password" class="login-field__input" id="input-senha" placeholder="••••••••••" autocomplete="current-password" />
+        </div>
+
+        <div class="login-row">
+          <label class="login-toggle">
+            <input type="checkbox" id="input-manter-conectado" />
+            <span class="login-toggle__track"><span class="login-toggle__thumb"></span></span>
+            Manter conectado
+          </label>
+          <a href="#" class="login-link" id="link-esqueci-senha">Esqueceu a senha?</a>
+        </div>
+
+        <div class="login-error" id="login-error"></div>
+        <button type="submit" class="login-submit">Entrar no sistema</button>
+      </form>
+
+      <p class="login-support">Problemas para acessar? Fale com o suporte de TI.</p>
     </div>
-    <div class="field">
-      <label class="field-label" for="input-senha">Senha</label>
-      <input type="password" class="field-input" id="input-senha" autocomplete="current-password" />
-    </div>
-    <div class="login-error" id="login-error"></div>
-    <button type="submit" class="btn btn--primary">Entrar</button>
-  </form>
+  </section>
 </div>
 
 <script src="login.js"></script>
