@@ -37,13 +37,14 @@ async function renderTabela() {
   document.getElementById('produtos-count-badge').textContent = `${produtos.length} produto${produtos.length !== 1 ? 's' : ''}`
 
   if (produtos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="table-empty-cell">Nenhum produto encontrado</td></tr>'
+    tbody.innerHTML = '<tr><td colspan="6" class="table-empty-cell">Nenhum produto encontrado</td></tr>'
     return
   }
 
   tbody.innerHTML = produtos.map(p => `
     <tr>
       <td>${p.id}</td>
+      <td>${p.imagem ? `<img class="produto-thumb" src="${p.imagem}" alt="${p.nome}" />` : '<div class="produto-thumb produto-thumb--vazio">—</div>'}</td>
       <td>${p.nome}</td>
       <td>${formatMoeda(p.valor)}</td>
       <td>${formatMoeda(p.valorAvista)}</td>

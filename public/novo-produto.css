@@ -74,6 +74,29 @@
 }
 .toast-simple--show { opacity: 1; transform: translateY(0); }
 
+.popup-overlay {
+  display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(15, 20, 30, 0.55);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.popup-overlay--show { display: flex; }
+.popup-card {
+  background: var(--bg-card); border-radius: var(--radius-lg); box-shadow: var(--shadow);
+  padding: 32px 36px; max-width: 380px; width: 100%; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  animation: popup-pop 0.18s ease;
+}
+.popup-card__icon {
+  width: 56px; height: 56px; border-radius: 50%; background: rgba(34,197,94,0.14); color: var(--concluido);
+  display: flex; align-items: center; justify-content: center;
+}
+.popup-card__icon svg { width: 28px; height: 28px; }
+.popup-card__mensagem { font-size: 1.05rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.01em; }
+
+@keyframes popup-pop {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 @media (max-width: 768px) {
   .form-grid { grid-template-columns: 1fr; }
   .field-block--wide { grid-column: span 1; }
