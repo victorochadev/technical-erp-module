@@ -6,7 +6,7 @@
 <title>BM1 ERP</title>
 <script>
   ;(function() {
-    if (sessionStorage.getItem('at-auth') !== 'ok') { window.location.replace('login.html'); }
+    if (sessionStorage.getItem('at-auth') !== 'ok' && localStorage.getItem('at-auth') !== 'ok') { window.location.replace('login.html'); }
   })()
 </script>
 <style>
