@@ -912,6 +912,21 @@
     return data ? mapGrupoProduto(data) : null
   }
 
+  // ───────────────────────── wiki ─────────────────────────
+
+  function mapWikiArtigo(row) {
+    return { id: row.id, titulo: row.titulo, conteudo: row.conteudo }
+  }
+
+  async function listWikiArtigos({ busca } = {}) {
+    const { data, error } = await sb().from('wiki_artigos').select('*').order('titulo')
+    if (error) throw error
+    const artigos = data.map(mapWikiArtigo)
+    if (!busca) return artigos
+    const alvo = busca.toLowerCase()
+    return artigos.filter(a => a.titulo.toLowerCase().includes(alvo) || a.conteudo.toLowerCase().includes(alvo))
+  }
+
   // ───────────────────────── roteador ─────────────────────────
 
   async function route(method, pathname, searchParams, bodyText) {
@@ -1073,6 +1088,10 @@
           return g ? { status: 200, body: g } : { status: 404, body: { erro: 'Grupo de produto não encontrado' } }
         }
       }
+    }
+
+    if (segments[0] === 'wiki' && method === 'GET') {
+      return { status: 200, body: await listWikiArtigos({ busca: searchParams.get('busca') }) }
     }
 
     throw new Error(`Rota não implementada no api-shim: ${method} /api/${pathname}`)

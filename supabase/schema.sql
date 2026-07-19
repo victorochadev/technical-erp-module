@@ -161,6 +161,13 @@ create table if not exists grupos_produto (
   created_at timestamptz not null default now()
 );
 
+create table if not exists wiki_artigos (
+  id bigint generated always as identity primary key,
+  titulo text not null,
+  conteudo text not null,
+  created_at timestamptz not null default now()
+);
+
 -- =========================================================
 -- ROW LEVEL SECURITY
 -- Protótipo interno sem Supabase Auth: libera leitura/escrita para a
@@ -177,7 +184,7 @@ begin
       'clientes', 'tecnicos', 'tecnicos_terceirizados',
       'catalogo_equipamentos', 'catalogo_modelos', 'catalogo_wms',
       'atendimentos', 'instalacoes', 'laboratorio_colunas', 'laboratorio_cards',
-      'requisicoes', 'produtos', 'grupos_produto'
+      'requisicoes', 'produtos', 'grupos_produto', 'wiki_artigos'
     ])
   loop
     execute format('alter table %I enable row level security;', t);

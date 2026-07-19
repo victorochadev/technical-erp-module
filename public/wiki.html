@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Novo Produto — Cadastro</title>
+<title>Wiki — Base de Conhecimento Técnico</title>
 <link rel="stylesheet" href="styles.css" />
-<link rel="stylesheet" href="novo-produto.css" />
+<link rel="stylesheet" href="wiki.css" />
 <script>
   ;(function() {
     if (sessionStorage.getItem('at-auth') !== 'ok' && localStorage.getItem('at-auth') !== 'ok') { window.location.replace('login.html'); }
@@ -23,7 +23,7 @@
   <div class="sidebar__divider"></div>
 
   <div class="sidebar__item">
-    <a href="clientes.html" class="sidebar__link sidebar__link--active" title="Cadastro">
+    <a href="clientes.html" class="sidebar__link" title="Cadastro">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10.5" r="2"/><path d="M5 17c.5-2 2-3 3.5-3s3 1 3.5 3"/><line x1="14" y1="9" x2="19" y2="9"/><line x1="14" y1="12" x2="19" y2="12"/><line x1="14" y1="15" x2="17" y2="15"/></svg>
     </a>
     <div class="sidebar__flyout">
@@ -36,7 +36,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="3" y1="13" x2="21" y2="13"/></svg>
         Técnicos Terceirizados
       </a>
-      <a href="produtos.html" class="sidebar__flyout-item sidebar__flyout-item--active">
+      <a href="produtos.html" class="sidebar__flyout-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.5 7.3 12 3 3.5 7.3 12 11.6l8.5-4.3z"/><path d="M3.5 7.3v9.4L12 21l8.5-4.3V7.3"/><path d="M12 11.6V21"/></svg>
         Produtos
       </a>
@@ -59,7 +59,7 @@
     </div>
   </div>
   <div class="sidebar__item">
-    <a href="atendimentos.html" class="sidebar__link" title="Área Técnica">
+    <a href="atendimentos.html" class="sidebar__link sidebar__link--active" title="Área Técnica">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
     </a>
     <div class="sidebar__flyout">
@@ -80,7 +80,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3h6"/><path d="M10 3v6.2L4.8 18a2 2 0 0 0 1.7 3h11a2 2 0 0 0 1.7-3L14 9.2V3"/></svg>
         Laboratório
       </a>
-      <a href="wiki.html" class="sidebar__flyout-item">
+      <a href="wiki.html" class="sidebar__flyout-item sidebar__flyout-item--active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
         Wiki
       </a>
@@ -95,10 +95,10 @@
 <header class="header">
   <div class="header-inner">
     <div class="header-brand">
-      <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.5 7.3 12 3 3.5 7.3 12 11.6l8.5-4.3z"/><path d="M3.5 7.3v9.4L12 21l8.5-4.3V7.3"/><path d="M12 11.6V21"/></svg>
+      <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
       <div class="header-title-group">
-        <h1 class="header-title" id="page-title">Novo Produto</h1>
-        <p class="header-subtitle" id="breadcrumb">Home / Cadastro / Produtos / Novo</p>
+        <h1 class="header-title">Wiki — Base de Conhecimento Técnico</h1>
+        <p class="header-subtitle">Home / Área Técnica / Wiki</p>
       </div>
     </div>
     <div class="header-meta">
@@ -109,77 +109,26 @@
   </div>
 </header>
 
-<main class="main main--form">
+<main class="main">
 
-  <div class="card form-grid">
-    <div class="field-block field-block--wide">
-      <label class="field-label">Nome do Item</label>
-      <input type="text" class="field-input" id="input-nome" />
-    </div>
-    <div class="field-block">
-      <label class="field-label">Valor</label>
-      <input type="number" step="0.01" min="0" class="field-input" id="input-valor" placeholder="0,00" />
-    </div>
-    <div class="field-block">
-      <label class="field-label">Valor à Vista</label>
-      <input type="number" step="0.01" min="0" class="field-input" id="input-valor-avista" placeholder="0,00" />
-    </div>
-    <div class="field-block">
-      <label class="field-label">Grupo de Produtos - 1</label>
-      <div class="combo-select" id="combo-grupo-1"></div>
-    </div>
-    <div class="field-block">
-      <label class="field-label">Grupo de Produtos - 2</label>
-      <div class="combo-select" id="combo-grupo-2"></div>
-    </div>
-    <div class="field-block">
-      <label class="field-label">NCM</label>
-      <input type="text" class="field-input" id="input-ncm" placeholder="0000.00.00" />
-    </div>
-    <div class="field-block">
-      <label class="field-label">Juros</label>
-      <input type="number" step="0.01" min="0" class="field-input" id="input-juros" placeholder="Juros na compra parcelada (%)" />
-    </div>
-    <div class="field-block">
-      <label class="field-label">Estoque</label>
-      <label class="checkbox-inline">
-        <input type="checkbox" id="input-controla-estoque" />
-        Controlar Estoque
-      </label>
-    </div>
-    <div class="field-block field-block--wide">
-      <label class="field-label">Imagem do Produto</label>
-      <div class="produto-imagem-row">
-        <div class="anexo-thumb" id="imagem-preview" style="display:none">
-          <img id="imagem-preview-img" src="" alt="Imagem do produto" />
-          <button type="button" class="anexo-thumb__remove" id="btn-remover-imagem" aria-label="Remover">✕</button>
-        </div>
-        <button type="button" class="btn btn--ghost" id="btn-anexar-imagem">Anexar Imagem</button>
-        <input type="file" id="input-imagem" accept="image/*" hidden />
-      </div>
-    </div>
+  <div class="card wiki-search-card">
+    <label class="wiki-search-label" for="wiki-busca">Qual a sua dúvida?</label>
+    <input type="text" class="search-input wiki-search-input" id="wiki-busca" placeholder="Digite uma palavra-chave: alinhamento de câmera, PSN, teflon, SignMaster..." autofocus />
   </div>
 
-  <div class="form-footer">
-    <button class="btn btn--primary btn--lg" id="btn-confirmar">Salvar Produto</button>
-  </div>
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Artigos</h2>
+      <span class="section-badge" id="wiki-count-badge">0 artigos</span>
+    </div>
+    <div class="wiki-list" id="wiki-list"></div>
+  </section>
 
 </main>
-
-<div class="toast-container" id="toast-container"></div>
-
-<div class="popup-overlay" id="popup-overlay">
-  <div class="popup-card">
-    <div class="popup-card__icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-    </div>
-    <p class="popup-card__mensagem" id="popup-mensagem"></p>
-  </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="api-shim.js"></script>
-<script src="novo-produto.js"></script>
+<script src="wiki.js"></script>
 </body>
 </html>

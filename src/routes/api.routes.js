@@ -10,6 +10,7 @@ const tecnicosTerceirizadosRepo = require('../data/tecnicosTerceirizadosReposito
 const tecnicosRepo = require('../data/tecnicosRepository')
 const produtosRepo = require('../data/produtosRepository')
 const gruposProdutoRepo = require('../data/gruposProdutoRepository')
+const wikiRepo = require('../data/wikiRepository')
 
 const router = express.Router()
 
@@ -214,6 +215,10 @@ router.put('/grupos-produto/:id', async (req, res) => {
   const grupo = await gruposProdutoRepo.atualizarGrupoProduto(req.params.id, req.body)
   if (!grupo) return res.status(404).json({ erro: 'Grupo de produto não encontrado' })
   res.json(grupo)
+})
+
+router.get('/wiki', async (req, res) => {
+  res.json(await wikiRepo.listWikiArtigos({ busca: req.query.busca }))
 })
 
 module.exports = router
