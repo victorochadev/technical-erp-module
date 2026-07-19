@@ -11,6 +11,7 @@ const tecnicosRepo = require('../data/tecnicosRepository')
 const produtosRepo = require('../data/produtosRepository')
 const gruposProdutoRepo = require('../data/gruposProdutoRepository')
 const wikiRepo = require('../data/wikiRepository')
+const wikiGruposRepo = require('../data/wikiGruposRepository')
 
 const router = express.Router()
 
@@ -218,7 +219,21 @@ router.put('/grupos-produto/:id', async (req, res) => {
 })
 
 router.get('/wiki', async (req, res) => {
-  res.json(await wikiRepo.listWikiArtigos({ busca: req.query.busca }))
+  res.json(await wikiRepo.listWikiArtigos({ busca: req.query.busca, grupoId: req.query.grupoId }))
+})
+
+router.post('/wiki', async (req, res) => {
+  const artigo = await wikiRepo.criarWikiArtigo(req.body)
+  res.status(201).json(artigo)
+})
+
+router.get('/wiki-grupos', async (req, res) => {
+  res.json(await wikiGruposRepo.listWikiGrupos())
+})
+
+router.post('/wiki-grupos', async (req, res) => {
+  const grupo = await wikiGruposRepo.criarWikiGrupo(req.body)
+  res.status(201).json(grupo)
 })
 
 module.exports = router

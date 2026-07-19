@@ -915,16 +915,49 @@
   // ───────────────────────── wiki ─────────────────────────
 
   function mapWikiArtigo(row) {
-    return { id: row.id, titulo: row.titulo, conteudo: row.conteudo }
+    return { id: row.id, titulo: row.titulo, conteudo: row.conteudo, grupoId: row.grupo_id }
   }
 
-  async function listWikiArtigos({ busca } = {}) {
+  async function listWikiArtigos({ busca, grupoId } = {}) {
     const { data, error } = await sb().from('wiki_artigos').select('*').order('titulo')
     if (error) throw error
-    const artigos = data.map(mapWikiArtigo)
+    let artigos = data.map(mapWikiArtigo)
+    if (grupoId) artigos = artigos.filter(a => a.grupoId === Number(grupoId))
     if (!busca) return artigos
     const alvo = busca.toLowerCase()
     return artigos.filter(a => a.titulo.toLowerCase().includes(alvo) || a.conteudo.toLowerCase().includes(alvo))
+  }
+
+  async function criarWikiArtigo(dados) {
+    const { data, error } = await sb()
+      .from('wiki_artigos')
+      .insert({ titulo: dados.titulo || '', conteudo: dados.conteudo || '', grupo_id: dados.grupoId || null })
+      .select()
+      .single()
+    if (error) throw error
+    return mapWikiArtigo(data)
+  }
+
+  // ───────────────────────── grupos de wiki ─────────────────────────
+
+  function mapWikiGrupo(row) {
+    return { id: row.id, nome: row.nome }
+  }
+
+  async function listWikiGrupos() {
+    const { data, error } = await sb().from('wiki_grupos').select('*').order('nome')
+    if (error) throw error
+    return data.map(mapWikiGrupo)
+  }
+
+  async function criarWikiGrupo(dados) {
+    const { data, error } = await sb()
+      .from('wiki_grupos')
+      .insert({ nome: dados.nome || '' })
+      .select()
+      .single()
+    if (error) throw error
+    return mapWikiGrupo(data)
   }
 
   // ───────────────────────── roteador ─────────────────────────
@@ -1090,8 +1123,16 @@
       }
     }
 
-    if (segments[0] === 'wiki' && method === 'GET') {
-      return { status: 200, body: await listWikiArtigos({ busca: searchParams.get('busca') }) }
+    if (segments[0] === 'wiki') {
+      if (segments.length === 1) {
+        if (method === 'GET') return { status: 200, body: await listWikiArtigos({ busca: searchParams.get('busca'), grupoId: searchParams.get('grupoId') }) }
+        if (method === 'POST') return { status: 201, body: await criarWikiArtigo(body) }
+      }
+    }
+
+    if (segments[0] === 'wiki-grupos' && segments.length === 1) {
+      if (method === 'GET') return { status: 200, body: await listWikiGrupos() }
+      if (method === 'POST') return { status: 201, body: await criarWikiGrupo(body) }
     }
 
     throw new Error(`Rota não implementada no api-shim: ${method} /api/${pathname}`)

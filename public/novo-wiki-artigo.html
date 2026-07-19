@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Wiki — Base de Conhecimento Técnico</title>
+<title>Nova Wiki — Área Técnica</title>
 <link rel="stylesheet" href="styles.css" />
-<link rel="stylesheet" href="wiki.css" />
+<link rel="stylesheet" href="novo-wiki-artigo.css" />
 <script>
   ;(function() {
     if (sessionStorage.getItem('at-auth') !== 'ok' && localStorage.getItem('at-auth') !== 'ok') { window.location.replace('login.html'); }
@@ -97,8 +97,8 @@
     <div class="header-brand">
       <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
       <div class="header-title-group">
-        <h1 class="header-title">Wiki — Base de Conhecimento Técnico</h1>
-        <p class="header-subtitle">Home / Área Técnica / Wiki</p>
+        <h1 class="header-title">Nova Wiki</h1>
+        <p class="header-subtitle">Home / Área Técnica / Wiki / Nova Wiki</p>
       </div>
     </div>
     <div class="header-meta">
@@ -109,35 +109,36 @@
   </div>
 </header>
 
-<main class="main">
+<main class="main main--form">
 
-  <div class="card wiki-search-card">
-    <label class="wiki-search-label" for="wiki-busca">Qual a sua dúvida?</label>
-    <input type="text" class="search-input wiki-search-input" id="wiki-busca" placeholder="Digite uma palavra-chave: alinhamento de câmera, PSN, teflon, SignMaster..." autofocus />
+  <div class="card form-grid">
+    <div class="field-block field-block--wide">
+      <label class="field-label">Título</label>
+      <input type="text" class="field-input" id="input-titulo" placeholder="Ex: Como alinhar a câmera do plotter" />
+    </div>
+    <div class="field-block">
+      <label class="field-label">Grupo</label>
+      <select class="field-select" id="input-grupo">
+        <option value="">Sem grupo</option>
+      </select>
+    </div>
+    <div class="field-block field-block--wide">
+      <label class="field-label">Conteúdo</label>
+      <textarea class="field-textarea" id="input-conteudo" placeholder="Descreva o passo a passo, cole links de vídeo/manual..."></textarea>
+    </div>
   </div>
 
-  <section class="section">
-    <div class="list-toolbar">
-      <select class="wiki-grupo-select" id="wiki-grupo-filtro">
-        <option value="">Todos os grupos</option>
-      </select>
-      <div class="wiki-toolbar-actions">
-        <a class="btn btn--ghost" href="novo-wiki-grupo.html">Novo Grupo</a>
-        <a class="btn btn--primary" href="novo-wiki-artigo.html">Nova Wiki</a>
-      </div>
-    </div>
-    <div class="section-header">
-      <h2 class="section-title">Artigos</h2>
-      <span class="section-badge" id="wiki-count-badge">0 artigos</span>
-    </div>
-    <div class="wiki-list" id="wiki-list"></div>
-  </section>
+  <div class="form-footer">
+    <button class="btn btn--primary btn--lg" id="btn-confirmar">Salvar Wiki</button>
+  </div>
 
 </main>
+
+<div class="toast-container" id="toast-container"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="api-shim.js"></script>
-<script src="wiki.js"></script>
+<script src="novo-wiki-artigo.js"></script>
 </body>
 </html>

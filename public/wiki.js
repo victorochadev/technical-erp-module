@@ -1,4 +1,4 @@
-const state = { busca: '' }
+const state = { busca: '', grupoId: '' }
 
 async function fetchJson(url) {
   const res = await fetch(url)
@@ -11,7 +11,9 @@ function linkify(texto) {
 }
 
 async function renderLista() {
-  const params = new URLSearchParams(state.busca ? { busca: state.busca } : {})
+  const params = new URLSearchParams()
+  if (state.busca) params.set('busca', state.busca)
+  if (state.grupoId) params.set('grupoId', state.grupoId)
   const artigos = await fetchJson(`/api/wiki?${params.toString()}`)
   const container = document.getElementById('wiki-list')
   document.getElementById('wiki-count-badge').textContent = `${artigos.length} artigo${artigos.length !== 1 ? 's' : ''}`
@@ -36,6 +38,16 @@ function setupBusca() {
   })
 }
 
+async function setupGrupoFiltro() {
+  const grupos = await fetchJson('/api/wiki-grupos')
+  const select = document.getElementById('wiki-grupo-filtro')
+  select.insertAdjacentHTML('beforeend', grupos.map(g => `<option value="${g.id}">${g.nome}</option>`).join(''))
+  select.addEventListener('change', e => {
+    state.grupoId = e.target.value
+    renderLista()
+  })
+}
+
 function setupTheme() {
   document.getElementById('theme-toggle').addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme')
@@ -48,6 +60,7 @@ function setupTheme() {
 async function init() {
   setupTheme()
   setupBusca()
+  await setupGrupoFiltro()
   await renderLista()
 }
 

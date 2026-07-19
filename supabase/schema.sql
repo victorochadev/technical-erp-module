@@ -161,10 +161,17 @@ create table if not exists grupos_produto (
   created_at timestamptz not null default now()
 );
 
+create table if not exists wiki_grupos (
+  id bigint generated always as identity primary key,
+  nome text not null unique,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists wiki_artigos (
   id bigint generated always as identity primary key,
   titulo text not null,
   conteudo text not null,
+  grupo_id bigint references wiki_grupos(id),
   created_at timestamptz not null default now()
 );
 
@@ -184,7 +191,7 @@ begin
       'clientes', 'tecnicos', 'tecnicos_terceirizados',
       'catalogo_equipamentos', 'catalogo_modelos', 'catalogo_wms',
       'atendimentos', 'instalacoes', 'laboratorio_colunas', 'laboratorio_cards',
-      'requisicoes', 'produtos', 'grupos_produto', 'wiki_artigos'
+      'requisicoes', 'produtos', 'grupos_produto', 'wiki_artigos', 'wiki_grupos'
     ])
   loop
     execute format('alter table %I enable row level security;', t);
@@ -337,3 +344,11 @@ insert into requisicoes (numero, dt_emissao, funcionario, itens, valor_total, at
 ('6967', '2026-07-14', 'Marcio José Alves', '[{"descricao":"Cabo Flat de Cabeçote","qtd":4.12,"valorUnit":60,"valorTotal":247}]', 247, null, ''),
 ('6968', '2026-07-14', 'Felipe da Silva Wosgrau Pinheiro', '[{"descricao":"Fonte de Alimentação 24V","qtd":1.42,"valorUnit":380,"valorTotal":540}]', 540, null, '')
 on conflict (numero) do nothing;
+
+insert into wiki_grupos (nome) values
+('G1'),
+('G2'),
+('V/D/SV'),
+('C'),
+('Laminadora')
+on conflict (nome) do nothing;
