@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Área Técnica — Dashboard de Atendimentos</title>
+<title>HelpDesk — Área Técnica</title>
 <link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="helpdesk.css" />
 <script>
   ;(function() {
     if (sessionStorage.getItem('at-auth') !== 'ok' && localStorage.getItem('at-auth') !== 'ok') { window.location.replace('login.html'); }
@@ -83,11 +84,11 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
         Wiki
       </a>
-      <a href="helpdesk.html" class="sidebar__flyout-item" target="_blank" rel="opener">
+      <a href="helpdesk.html" class="sidebar__flyout-item sidebar__flyout-item--active" target="_blank" rel="opener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         HelpDesk
       </a>
-      <a href="index.html" class="sidebar__flyout-item sidebar__flyout-item--active">
+      <a href="index.html" class="sidebar__flyout-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
         Dashboard
       </a>
@@ -98,14 +99,13 @@
 <header class="header">
   <div class="header-inner">
     <div class="header-brand">
+      <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       <div class="header-title-group">
-        <p class="header-eyebrow">ERP Módulo Técnico</p>
-        <h1 class="header-title">Painel de Atendimentos | Dashboard</h1>
-        <p class="header-subtitle">Visão geral dos atendimentos técnicos, equipe e agenda da semana.</p>
+        <h1 class="header-title">HelpDesk</h1>
+        <p class="header-subtitle">Home / Área Técnica / HelpDesk</p>
       </div>
     </div>
     <div class="header-meta">
-      <select class="filter-select" id="filter-mes" aria-label="Selecionar mês"></select>
       <button class="theme-toggle" id="theme-toggle" aria-label="Alternar tema">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
@@ -113,69 +113,21 @@
   </div>
 </header>
 
-<main class="main">
-
-  <div class="dashboard-grid">
-    <section class="card" aria-label="Atendimentos por tipo">
-      <h2 class="section-title">Atendimentos por Tipo</h2>
-      <div class="donut-row">
-        <div class="donut" id="donut-tipo">
-          <span class="donut-total" id="kpi-total">—</span>
-        </div>
-        <div class="donut-legend">
-          <div class="legend-item"><span class="legend-dot legend-dot--presencial"></span>Presencial <b id="tipo-presencial-count">0</b> <span class="legend-pct" id="tipo-presencial-pct"></span></div>
-          <div class="legend-item"><span class="legend-dot legend-dot--remoto"></span>Remoto <b id="tipo-remoto-count">0</b> <span class="legend-pct" id="tipo-remoto-pct"></span></div>
-          <div class="legend-item"><span class="legend-dot legend-dot--laboratorio"></span>Laboratório <b id="tipo-laboratorio-count">0</b> <span class="legend-pct" id="tipo-laboratorio-pct"></span></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="card" aria-label="Status dos atendimentos">
-      <h2 class="section-title">Status dos Atendimentos</h2>
-      <div class="stat-row">
-        <div class="stat-card">
-          <span class="stat-card__label"><span class="stat-card__dot stat-card__dot--concluido"></span>Concluídos</span>
-          <span class="stat-card__big" id="status-concluido-count">0</span>
-          <span class="stat-card__hint" id="status-concluido-hint"></span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-card__label"><span class="stat-card__dot stat-card__dot--emandamento"></span>Em andamento</span>
-          <span class="stat-card__big" id="status-em-count">0</span>
-          <span class="stat-card__hint" id="status-em-hint"></span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-card__label"><span class="stat-card__dot stat-card__dot--cancelado"></span>Cancelados</span>
-          <span class="stat-card__big" id="status-cancelado-count">0</span>
-          <span class="stat-card__hint" id="status-cancelado-hint"></span>
-        </div>
-      </div>
+<main class="main main--helpdesk">
+  <div class="helpdesk-layout" id="helpdesk-layout">
+    <aside class="helpdesk-list">
+      <div class="helpdesk-list__header">Conversas</div>
+      <div class="helpdesk-list__itens" id="helpdesk-conversas"></div>
+    </aside>
+    <section class="helpdesk-thread" id="helpdesk-thread">
+      <div class="helpdesk-thread helpdesk-thread--vazio">Selecione uma conversa para ver as mensagens.</div>
     </section>
   </div>
-
-  <div class="dashboard-grid">
-    <section class="card" aria-label="Desempenho por técnico">
-      <h2 class="section-title">Desempenho por Técnico</h2>
-      <div class="tabs-row" style="margin-top:12px">
-        <div class="tabs" id="desempenho-tabs">
-          <button class="tab tab--active" data-tipo="Laboratório">Laboratório</button>
-          <button class="tab" data-tipo="Remoto">Remoto</button>
-          <button class="tab" data-tipo="Presencial">Presencial</button>
-        </div>
-      </div>
-      <div class="tech-list" id="tech-list"></div>
-    </section>
-
-    <section class="card" aria-label="Agenda da semana">
-      <h2 class="section-title">Agenda da Semana</h2>
-      <div class="agenda-list" id="agenda-list"></div>
-    </section>
-  </div>
-
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="api-shim.js"></script>
-<script src="app.js"></script>
+<script src="helpdesk.js"></script>
 </body>
 </html>

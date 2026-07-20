@@ -1,0 +1,88 @@
+.main--helpdesk { padding: 24px; height: calc(100vh - var(--header-height)); box-sizing: border-box; }
+
+.helpdesk-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.helpdesk-list {
+  width: 320px; flex-shrink: 0;
+  border-right: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  display: flex; flex-direction: column;
+}
+.helpdesk-list__header {
+  padding: 16px 18px; border-bottom: 1px solid var(--border-subtle);
+  font-size: 0.95rem; font-weight: 700; color: var(--text-primary);
+}
+.helpdesk-list__itens { flex: 1; overflow-y: auto; }
+
+.helpdesk-conversa {
+  display: flex; align-items: center; gap: 12px; padding: 14px 18px; cursor: pointer;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.helpdesk-conversa:hover { background: var(--bg-input); }
+.helpdesk-conversa--ativa { background: var(--bg-card); }
+.helpdesk-conversa__avatar {
+  width: 40px; height: 40px; border-radius: 50%; background: var(--remoto); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
+}
+.helpdesk-conversa__info { min-width: 0; flex: 1; }
+.helpdesk-conversa__nome { font-size: 0.88rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.helpdesk-conversa__preview { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+
+.helpdesk-empty { padding: 20px 18px; color: var(--text-muted); font-size: 0.85rem; }
+
+.helpdesk-thread { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+.helpdesk-thread__header {
+  padding: 16px 20px; border-bottom: 1px solid var(--border-subtle);
+  display: flex; align-items: center; gap: 12px;
+}
+.helpdesk-thread__header-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.helpdesk-thread__voltar {
+  display: none; border: none; background: none; cursor: pointer; color: var(--text-secondary);
+  padding: 4px; flex-shrink: 0;
+}
+.helpdesk-thread__nome { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
+.helpdesk-thread__telefone { font-size: 0.78rem; color: var(--text-muted); }
+
+.helpdesk-thread__mensagens { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+
+.helpdesk-msg { max-width: 68%; padding: 10px 14px; border-radius: 14px; font-size: 0.85rem; line-height: 1.5; }
+.helpdesk-msg--cliente { align-self: flex-start; background: var(--bg-surface); border: 1px solid var(--border-subtle); color: var(--text-primary); border-bottom-left-radius: 4px; }
+.helpdesk-msg--atendente { align-self: flex-end; background: var(--remoto); color: #fff; border-bottom-right-radius: 4px; }
+.helpdesk-msg__hora { display: block; font-size: 0.68rem; margin-top: 5px; opacity: 0.7; }
+
+.helpdesk-thread__composer {
+  flex-shrink: 0; border-top: 1px solid var(--border-subtle); padding: 14px 20px;
+  display: flex; gap: 10px; align-items: flex-end;
+}
+.helpdesk-thread__composer textarea {
+  flex: 1; resize: none; min-height: 42px; max-height: 120px;
+  font-family: var(--font); font-size: 0.86rem; padding: 10px 12px;
+  border-radius: var(--radius-sm); border: 1px solid var(--border-default);
+  background: var(--bg-input); color: var(--text-primary);
+}
+.helpdesk-thread__composer button {
+  border: none; border-radius: 999px; padding: 10px 22px; font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; font-family: var(--font); background: var(--remoto); color: #fff; flex-shrink: 0;
+}
+.helpdesk-thread__composer button:hover { filter: brightness(1.08); }
+.helpdesk-thread__composer button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.helpdesk-thread--vazio { align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.9rem; }
+
+@media (max-width: 768px) {
+  .main--helpdesk { padding: 0; height: calc(100vh - var(--header-height)); }
+  .helpdesk-layout { border-radius: 0; border: none; }
+  .helpdesk-list { width: 100%; }
+  .helpdesk-layout.helpdesk-layout--conversa-aberta .helpdesk-list { display: none; }
+  .helpdesk-layout:not(.helpdesk-layout--conversa-aberta) .helpdesk-thread { display: none; }
+  .helpdesk-thread__voltar { display: inline-flex; }
+}
