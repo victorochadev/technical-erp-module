@@ -12,6 +12,7 @@ const produtosRepo = require('../data/produtosRepository')
 const gruposProdutoRepo = require('../data/gruposProdutoRepository')
 const wikiRepo = require('../data/wikiRepository')
 const wikiGruposRepo = require('../data/wikiGruposRepository')
+const helpdeskRepo = require('../data/helpdeskRepository')
 
 const router = express.Router()
 
@@ -234,6 +235,19 @@ router.get('/wiki-grupos', async (req, res) => {
 router.post('/wiki-grupos', async (req, res) => {
   const grupo = await wikiGruposRepo.criarWikiGrupo(req.body)
   res.status(201).json(grupo)
+})
+
+router.get('/helpdesk/conversas', async (req, res) => {
+  res.json(await helpdeskRepo.listConversas())
+})
+
+router.get('/helpdesk/conversas/:id/mensagens', async (req, res) => {
+  res.json(await helpdeskRepo.listMensagens(req.params.id))
+})
+
+router.post('/helpdesk/conversas/:id/mensagens', async (req, res) => {
+  const mensagem = await helpdeskRepo.enviarMensagem(req.params.id, req.body.texto)
+  res.status(201).json(mensagem)
 })
 
 module.exports = router

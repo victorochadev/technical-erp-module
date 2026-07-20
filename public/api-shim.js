@@ -960,6 +960,47 @@
     return mapWikiGrupo(data)
   }
 
+  // ───────────────────────── helpdesk ─────────────────────────
+
+  function mapHelpdeskConversa(row) {
+    const mensagens = row.helpdesk_mensagens || []
+    const ultima = mensagens.length ? mensagens[mensagens.length - 1] : null
+    return {
+      id: row.id,
+      clienteNome: row.cliente_nome,
+      telefone: row.telefone || '',
+      status: row.status,
+      ultimaMensagem: ultima ? ultima.texto : '',
+      ultimaMensagemEm: ultima ? ultima.created_at : row.created_at,
+    }
+  }
+
+  function mapHelpdeskMensagem(row) {
+    return { id: row.id, conversaId: row.conversa_id, autor: row.autor, texto: row.texto, criadaEm: row.created_at }
+  }
+
+  async function listHelpdeskConversas() {
+    const { data, error } = await sb().from('helpdesk_conversas').select('*, helpdesk_mensagens(texto, created_at)').order('created_at', { ascending: false })
+    if (error) throw error
+    return data.map(mapHelpdeskConversa).sort((a, b) => new Date(b.ultimaMensagemEm) - new Date(a.ultimaMensagemEm))
+  }
+
+  async function listHelpdeskMensagens(conversaId) {
+    const { data, error } = await sb().from('helpdesk_mensagens').select('*').eq('conversa_id', Number(conversaId)).order('created_at')
+    if (error) throw error
+    return data.map(mapHelpdeskMensagem)
+  }
+
+  async function enviarHelpdeskMensagem(conversaId, texto) {
+    const { data, error } = await sb()
+      .from('helpdesk_mensagens')
+      .insert({ conversa_id: Number(conversaId), autor: 'atendente', texto })
+      .select()
+      .single()
+    if (error) throw error
+    return mapHelpdeskMensagem(data)
+  }
+
   // ───────────────────────── roteador ─────────────────────────
 
   async function route(method, pathname, searchParams, bodyText) {
@@ -1133,6 +1174,14 @@
     if (segments[0] === 'wiki-grupos' && segments.length === 1) {
       if (method === 'GET') return { status: 200, body: await listWikiGrupos() }
       if (method === 'POST') return { status: 201, body: await criarWikiGrupo(body) }
+    }
+
+    if (segments[0] === 'helpdesk' && segments[1] === 'conversas') {
+      if (segments.length === 2 && method === 'GET') return { status: 200, body: await listHelpdeskConversas() }
+      if (segments.length === 4 && segments[3] === 'mensagens') {
+        if (method === 'GET') return { status: 200, body: await listHelpdeskMensagens(segments[2]) }
+        if (method === 'POST') return { status: 201, body: await enviarHelpdeskMensagem(segments[2], body.texto) }
+      }
     }
 
     throw new Error(`Rota não implementada no api-shim: ${method} /api/${pathname}`)

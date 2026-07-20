@@ -175,6 +175,22 @@ create table if not exists wiki_artigos (
   created_at timestamptz not null default now()
 );
 
+create table if not exists helpdesk_conversas (
+  id bigint generated always as identity primary key,
+  cliente_nome text not null,
+  telefone text,
+  status text not null default 'aberta' check (status in ('aberta', 'encerrada')),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists helpdesk_mensagens (
+  id bigint generated always as identity primary key,
+  conversa_id bigint not null references helpdesk_conversas(id) on delete cascade,
+  autor text not null check (autor in ('cliente', 'atendente')),
+  texto text not null,
+  created_at timestamptz not null default now()
+);
+
 -- =========================================================
 -- ROW LEVEL SECURITY
 -- Protótipo interno sem Supabase Auth: libera leitura/escrita para a
@@ -191,7 +207,8 @@ begin
       'clientes', 'tecnicos', 'tecnicos_terceirizados',
       'catalogo_equipamentos', 'catalogo_modelos', 'catalogo_wms',
       'atendimentos', 'instalacoes', 'laboratorio_colunas', 'laboratorio_cards',
-      'requisicoes', 'produtos', 'grupos_produto', 'wiki_artigos', 'wiki_grupos'
+      'requisicoes', 'produtos', 'grupos_produto', 'wiki_artigos', 'wiki_grupos',
+      'helpdesk_conversas', 'helpdesk_mensagens'
     ])
   loop
     execute format('alter table %I enable row level security;', t);
@@ -352,3 +369,49 @@ insert into wiki_grupos (nome) values
 ('C'),
 ('Laminadora')
 on conflict (nome) do nothing;
+
+do $$
+declare
+  conversa record;
+  conversa_id bigint;
+begin
+  if (select count(*) from helpdesk_conversas) = 0 then
+    for conversa in
+      select * from (values
+        ('Oficina do Letreiro', '(17) 99812-3344'),
+        ('Beetle Press', '(41) 99123-5566'),
+        ('Ponto Digital', '(62) 99841-2200'),
+        ('Crystal Águas', '(11) 98765-4321'),
+        ('Franco Carmélio Nunes', '(11) 91234-5678')
+      ) as c(cliente_nome, telefone)
+    loop
+      insert into helpdesk_conversas (cliente_nome, telefone) values (conversa.cliente_nome, conversa.telefone) returning id into conversa_id;
+
+      if conversa.cliente_nome = 'Oficina do Letreiro' then
+        insert into helpdesk_mensagens (conversa_id, autor, texto) values
+        (conversa_id, 'cliente', 'Boa tarde! A plotter aqui parou de reconhecer o material, aparece "erro de sensor".'),
+        (conversa_id, 'atendente', 'Boa tarde, Marcos! Pode me confirmar o modelo da máquina e enviar uma foto do painel de erro?'),
+        (conversa_id, 'cliente', 'É a Roland GS-24. Já te mando a foto.'),
+        (conversa_id, 'atendente', 'Perfeito, recebido. Vou verificar o histórico do equipamento e já te retorno com o próximo passo.');
+      elsif conversa.cliente_nome = 'Beetle Press' then
+        insert into helpdesk_mensagens (conversa_id, autor, texto) values
+        (conversa_id, 'cliente', 'Oi, bom dia. Preciso de suporte para calibrar as cores da nossa impressora UV.'),
+        (conversa_id, 'atendente', 'Bom dia! Você já tentou rodar o perfil ICC padrão de fábrica?'),
+        (conversa_id, 'cliente', 'Ainda não, vou tentar e te aviso o resultado.');
+      elsif conversa.cliente_nome = 'Ponto Digital' then
+        insert into helpdesk_mensagens (conversa_id, autor, texto) values
+        (conversa_id, 'cliente', 'Olá! Vocês têm previsão de quando a peça da requisição 6965 chega?'),
+        (conversa_id, 'atendente', 'Oi, Fernanda! Deixa eu confirmar com o setor de compras e te retorno ainda hoje.');
+      elsif conversa.cliente_nome = 'Crystal Águas' then
+        insert into helpdesk_mensagens (conversa_id, autor, texto) values
+        (conversa_id, 'cliente', 'A laminadora está fazendo um barulho estranho no rolo de tração.'),
+        (conversa_id, 'atendente', 'Entendido. Pode gravar um vídeo curto do barulho e enviar por aqui? Ajuda bastante no diagnóstico.'),
+        (conversa_id, 'cliente', 'Consigo sim, te mando em instantes.');
+      elsif conversa.cliente_nome = 'Franco Carmélio Nunes' then
+        insert into helpdesk_mensagens (conversa_id, autor, texto) values
+        (conversa_id, 'cliente', 'Bom dia, o programa SignMaster não está abrindo depois da atualização do Windows.'),
+        (conversa_id, 'atendente', 'Bom dia! Vamos reinstalar a versão compatível. Você tem acesso remoto disponível agora?');
+      end if;
+    end loop;
+  end if;
+end $$;
