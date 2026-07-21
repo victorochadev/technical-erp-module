@@ -204,6 +204,12 @@ router.put('/produtos/:id', async (req, res) => {
   res.json(produto)
 })
 
+router.delete('/produtos/:id', async (req, res) => {
+  const excluido = await produtosRepo.excluirProduto(req.params.id)
+  if (!excluido) return res.status(404).json({ erro: 'Produto não encontrado' })
+  res.status(204).end()
+})
+
 router.get('/grupos-produto', async (req, res) => {
   res.json(await gruposProdutoRepo.listGruposProduto())
 })

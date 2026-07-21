@@ -884,6 +884,17 @@
     return data ? mapProduto(data) : null
   }
 
+  async function excluirProduto(id) {
+    const { data, error } = await sb()
+      .from('produtos')
+      .delete()
+      .eq('id', Number(id))
+      .select('id')
+      .maybeSingle()
+    if (error) throw error
+    return Boolean(data)
+  }
+
   // ───────────────────────── grupos de produto ─────────────────────────
 
   function mapGrupoProduto(row) {
@@ -1158,6 +1169,10 @@
         if (method === 'PUT') {
           const p = await atualizarProduto(segments[1], body)
           return p ? { status: 200, body: p } : { status: 404, body: { erro: 'Produto não encontrado' } }
+        }
+        if (method === 'DELETE') {
+          const excluido = await excluirProduto(segments[1])
+          return excluido ? { status: 204, body: null } : { status: 404, body: { erro: 'Produto não encontrado' } }
         }
       }
     }
