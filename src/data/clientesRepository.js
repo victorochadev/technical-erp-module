@@ -108,4 +108,15 @@ async function atualizarCliente(id, dados) {
   return data ? mapCliente(data) : null
 }
 
-module.exports = { buscarClientesPorNome, buscarClientePorId, listClientes, criarCliente, atualizarCliente }
+async function excluirCliente(id) {
+  const { data, error } = await supabase
+    .from('clientes')
+    .delete()
+    .eq('id', Number(id))
+    .select('id')
+    .maybeSingle()
+  if (error) throw error
+  return Boolean(data)
+}
+
+module.exports = { buscarClientesPorNome, buscarClientePorId, listClientes, criarCliente, atualizarCliente, excluirCliente }

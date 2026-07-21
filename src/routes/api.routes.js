@@ -73,6 +73,12 @@ router.put('/clientes/:id', async (req, res) => {
   res.json(cliente)
 })
 
+router.delete('/clientes/:id', async (req, res) => {
+  const excluido = await clientesRepo.excluirCliente(req.params.id)
+  if (!excluido) return res.status(404).json({ erro: 'Cliente não encontrado' })
+  res.status(204).end()
+})
+
 router.get('/catalogo/equipamentos', async (req, res) => {
   res.json(await catalogoRepo.buscarEquipamentos(req.query.q))
 })
