@@ -113,6 +113,17 @@
     return data ? mapCliente(data) : null
   }
 
+  async function excluirCliente(id) {
+    const { data, error } = await sb()
+      .from('clientes')
+      .delete()
+      .eq('id', Number(id))
+      .select('id')
+      .maybeSingle()
+    if (error) throw error
+    return Boolean(data)
+  }
+
   // ───────────────────────── técnicos ─────────────────────────
 
   async function listTecnicosInternos() {
@@ -1062,6 +1073,10 @@
         if (method === 'PUT') {
           const c = await atualizarCliente(segments[1], body)
           return c ? { status: 200, body: c } : { status: 404, body: { erro: 'Cliente não encontrado' } }
+        }
+        if (method === 'DELETE') {
+          const excluido = await excluirCliente(segments[1])
+          return excluido ? { status: 204, body: null } : { status: 404, body: { erro: 'Cliente não encontrado' } }
         }
       }
     }
