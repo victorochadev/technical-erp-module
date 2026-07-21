@@ -74,4 +74,15 @@ async function atualizarProduto(id, dados) {
   return data ? mapProduto(data) : null
 }
 
-module.exports = { listProdutos, buscarProdutoPorId, criarProduto, atualizarProduto }
+async function excluirProduto(id) {
+  const { data, error } = await supabase
+    .from('produtos')
+    .delete()
+    .eq('id', Number(id))
+    .select('id')
+    .maybeSingle()
+  if (error) throw error
+  return Boolean(data)
+}
+
+module.exports = { listProdutos, buscarProdutoPorId, criarProduto, atualizarProduto, excluirProduto }
