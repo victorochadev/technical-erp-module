@@ -19,6 +19,7 @@ const state = {
   tipo: 'Remoto',
   anexos: [],
   tecnicosCache: null,
+  tecnicoTipo: 'bannerjet',
   modoEdicao: false,
   slaInicial: 'padrao',
   atendimentoVinculado: null,
@@ -165,6 +166,7 @@ async function abrirEmModoEdicao(atendimentoId) {
   document.getElementById('input-ida').value = atendimento.ida || ''
   document.getElementById('input-volta').value = atendimento.volta || ''
   document.getElementById('input-tecnico').value = atendimento.tecnico || ''
+  setTecnicoTipoUI(await inferirTecnicoTipo(atendimento.tecnico))
   document.getElementById('input-equipamento').value = atendimento.equipamento || ''
   document.getElementById('input-modelo').value = atendimento.modelo || ''
   preencherWms(atendimento.wms || [])
@@ -200,6 +202,7 @@ function resetForm() {
   state.modoEdicao = false
   state.atendimentoVinculado = null
   state.requisicaoNumero = null
+  setTecnicoTipoUI('bannerjet')
   document.getElementById('input-tecnico').value = ''
   document.getElementById('input-equipamento').value = ''
   document.getElementById('input-modelo').value = ''
@@ -232,6 +235,69 @@ function setTipo(tipo) {
     tab.classList.toggle('tab--active', tab.dataset.tipo === tipo)
   })
   atualizarVisibilidadeBlocos()
+  atualizarDisponibilidadeTecnicoTerceirizado()
+}
+
+// ─── Técnico Bannerjet / Terceirizado ─────────────────────────────────────────
+// Terceirizado só é uma opção válida para Presencial/Laboratório (não faz
+// sentido despachar um terceiro pra um chamado Remoto) — por isso o toggle
+// se desabilita e volta pra Bannerjet automaticamente quando o tipo muda pra Remoto.
+
+function atualizarDisponibilidadeTecnicoTerceirizado() {
+  const disponivel = state.tipo !== 'Remoto'
+  const btnTerceirizado = document.querySelector('#tecnico-tipo-tabs [data-tecnico-tipo="terceirizado"]')
+  btnTerceirizado.classList.toggle('tab--disabled', !disponivel)
+  btnTerceirizado.disabled = !disponivel
+
+  if (!disponivel && state.tecnicoTipo === 'terceirizado') {
+    setTecnicoTipo('bannerjet')
+    showToast('Técnico terceirizado não está disponível para atendimento Remoto.')
+  }
+}
+
+function setTecnicoTipoUI(tipo) {
+  state.tecnicoTipo = tipo
+  document.querySelectorAll('#tecnico-tipo-tabs .tab').forEach(tab => {
+    tab.classList.toggle('tab--active', tab.dataset.tecnicoTipo === tipo)
+  })
+  document.getElementById('input-tecnico').placeholder =
+    tipo === 'terceirizado' ? 'Buscar técnico terceirizado...' : 'Buscar técnico Bannerjet...'
+}
+
+function setTecnicoTipo(tipo) {
+  setTecnicoTipoUI(tipo)
+  const input = document.getElementById('input-tecnico')
+  input.value = ''
+  input.focus()
+}
+
+// Compara a cidade do técnico com a do cliente para ordenar por proximidade —
+// este protótipo não tem dados geográficos reais (lat/long), então usa
+// "mesma cidade" > "mesmo estado" > resto como um proxy de região/distância.
+function parseCidadeUf(cidadeStr) {
+  const partes = (cidadeStr || '').split(' - ')
+  const uf = partes.length > 1 ? partes[partes.length - 1].trim().toUpperCase() : ''
+  const cidade = (partes.length > 1 ? partes.slice(0, -1).join(' - ') : (cidadeStr || '')).trim().toLowerCase()
+  return { cidade, uf }
+}
+
+function prioridadeRegiao(cidadeTecnico, cidadeCliente) {
+  const t = parseCidadeUf(cidadeTecnico)
+  const c = parseCidadeUf(cidadeCliente)
+  if (t.cidade && t.cidade === c.cidade) return 0
+  if (t.uf && t.uf === c.uf) return 1
+  return 2
+}
+
+async function inferirTecnicoTipo(nomeTecnico) {
+  if (!nomeTecnico) return 'bannerjet'
+  try {
+    const terceirizados = await fetchJson('/api/tecnicos-terceirizados')
+    const alvo = nomeTecnico.trim().toLowerCase()
+    return terceirizados.some(t => t.nome.trim().toLowerCase() === alvo) ? 'terceirizado' : 'bannerjet'
+  } catch (e) {
+    return 'bannerjet'
+  }
 }
 
 function setSlaInicial(sla) {
@@ -349,13 +415,34 @@ async function setupAutocompleteTecnico() {
   createAutocomplete({
     inputEl: document.getElementById('input-tecnico'),
     dropdownEl: document.getElementById('dropdown-tecnico'),
-    minChars: 1,
+    minChars: 0,
     fetchItems: async query => {
+      if (state.tecnicoTipo === 'terceirizado') {
+        const cidadeCliente = state.cliente ? state.cliente.cidade : ''
+        const resultados = await fetchJson(`/api/tecnicos-terceirizados?busca=${encodeURIComponent(query)}`)
+        return resultados
+          .map(t => ({ ...t, tipo: 'terceirizado', prioridade: prioridadeRegiao(t.cidade, cidadeCliente) }))
+          .sort((a, b) => a.prioridade - b.prioridade || a.nome.localeCompare(b.nome))
+          .slice(0, 10)
+      }
       if (!state.tecnicosCache) state.tecnicosCache = await fetchJson('/api/tecnicos')
-      return state.tecnicosCache.filter(t => t.toLowerCase().includes(query.toLowerCase())).slice(0, 10)
+      return state.tecnicosCache
+        .filter(nome => nome.toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 10)
+        .map(nome => ({ nome, tipo: 'bannerjet' }))
     },
-    renderItem: nome => `<div class="autocomplete-item__title">${nome}</div>`,
-    onSelect: nome => { document.getElementById('input-tecnico').value = nome },
+    renderItem: item => {
+      if (item.tipo === 'terceirizado') {
+        const badge = item.prioridade === 0
+          ? '<span class="tecnico-regiao-badge tecnico-regiao-badge--cidade">Mesma cidade</span>'
+          : item.prioridade === 1
+            ? '<span class="tecnico-regiao-badge tecnico-regiao-badge--estado">Mesmo estado</span>'
+            : ''
+        return `<div class="autocomplete-item__title">${item.nome}${badge}</div><div class="autocomplete-item__sub">${item.empresa || 'Terceirizado'} — ${item.cidade || ''}</div>`
+      }
+      return `<div class="autocomplete-item__title">${item.nome}</div>`
+    },
+    onSelect: item => { document.getElementById('input-tecnico').value = item.nome },
   })
 }
 
@@ -400,6 +487,9 @@ function setupTheme() {
 function setupBotoes() {
   document.querySelectorAll('#tipo-tabs .tab').forEach(tab => {
     tab.addEventListener('click', () => setTipo(tab.dataset.tipo))
+  })
+  document.querySelectorAll('#tecnico-tipo-tabs .tab').forEach(tab => {
+    tab.addEventListener('click', () => { if (!tab.disabled) setTecnicoTipo(tab.dataset.tecnicoTipo) })
   })
   document.querySelectorAll('#sla-picker .sla-picker__option').forEach(btn => {
     btn.addEventListener('click', () => setSlaInicial(btn.dataset.sla))

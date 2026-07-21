@@ -217,11 +217,15 @@
         </div>
       </div>
 
-      <div class="card field-block">
+      <div class="card field-block field-block--wide" id="bloco-tecnico">
         <label class="field-label">Técnico</label>
+        <div class="tabs" id="tecnico-tipo-tabs">
+          <button type="button" class="tab tab--active" data-tecnico-tipo="bannerjet">Técnico Bannerjet</button>
+          <button type="button" class="tab" data-tecnico-tipo="terceirizado" title="Disponível apenas para atendimentos Presencial e Laboratório">Técnico Terceirizado</button>
+        </div>
         <div class="autocomplete" id="ac-tecnico">
           <div class="autocomplete-input-wrap">
-            <input type="text" class="field-input" id="input-tecnico" placeholder="Buscar técnico..." autocomplete="off" />
+            <input type="text" class="field-input" id="input-tecnico" placeholder="Buscar técnico Bannerjet..." autocomplete="off" />
             <svg class="search-input__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </div>
           <div class="autocomplete-dropdown" id="dropdown-tecnico"></div>

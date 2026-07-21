@@ -8,6 +8,15 @@
 }
 .field-textarea { min-height: 90px; resize: vertical; font-family: var(--font); }
 
+.tab--disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+
+.tecnico-regiao-badge {
+  display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 2px 8px;
+  border-radius: 999px; margin-left: 6px; vertical-align: middle;
+}
+.tecnico-regiao-badge--cidade { background: rgba(34,197,94,0.14); color: var(--concluido); }
+.tecnico-regiao-badge--estado { background: rgba(245,158,11,0.14); color: var(--emandamento); }
+
 .sla-picker { display: flex; gap: 8px; }
 .sla-picker__option {
   flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
