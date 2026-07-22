@@ -7,17 +7,6 @@
   background: var(--bg-input); border: 1px solid var(--border-default); border-radius: var(--radius-sm);
   color: var(--text-primary); padding: 10px 14px; font-size: 0.88rem; font-family: var(--font);
 }
-.wiki-toolbar-actions { display: flex; gap: 10px; }
-
-.btn {
-  border: none; border-radius: 999px; padding: 9px 20px; font-size: 0.85rem; font-weight: 600;
-  cursor: pointer; font-family: var(--font); display: inline-flex; align-items: center; gap: 6px;
-  text-decoration: none;
-}
-.btn--ghost { background: var(--bg-surface); color: var(--text-secondary); border: 1px solid var(--border-default); }
-.btn--primary { background: var(--remoto); color: #fff; }
-.btn:hover { filter: brightness(1.08); }
-
 .wiki-list { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
 .wiki-card { border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: 16px 18px; }
 .wiki-card__titulo { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
@@ -34,6 +23,4 @@
   .wiki-search-input { font-size: 0.9rem; }
   .list-toolbar { flex-wrap: wrap; }
   .wiki-grupo-select { width: 100%; }
-  .wiki-toolbar-actions { width: 100%; }
-  .wiki-toolbar-actions .btn { flex: 1; justify-content: center; }
 }
