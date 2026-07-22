@@ -328,15 +328,6 @@ body {
   font-family: var(--font); font-size: 0.82rem; color: var(--cancelado); cursor: pointer;
 }
 .board-column__menu-item:hover { background: var(--bg-surface); }
-.board-column--nova { background: transparent; border: none; padding: 0; display: block; height: fit-content; max-height: none; }
-.board-column__nova-btn {
-  width: 100%; background: none; border: 1px dashed var(--border-default); border-radius: var(--radius-lg);
-  color: var(--text-secondary); font-size: 0.85rem; font-weight: 600; padding: 14px; cursor: pointer;
-  display: flex; align-items: center; gap: 8px;
-}
-.board-column__nova-btn svg { width: 16px; height: 16px; }
-.board-column__nova-btn:hover { background: var(--bg-surface); color: var(--text-primary); }
-.board-column--nova .board-column__add-form { padding: 14px; background: var(--bg-surface); border-radius: var(--radius-lg); }
 .board-column__list {
   flex: 1; overflow-y: auto; padding: 4px 10px; display: flex; flex-direction: column; gap: 10px; min-height: 60px;
 }

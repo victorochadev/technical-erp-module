@@ -4,7 +4,6 @@ const state = {
   addFormAberto: null,
   cardAbertoId: null,
   menuColunaAberto: null,
-  novaColunaAberta: false,
 }
 
 async function fetchJson(url, options) {
@@ -95,23 +94,8 @@ function renderColuna(coluna) {
   `
 }
 
-function renderNovaColuna() {
-  const conteudo = state.novaColunaAberta ? `
-    <div class="board-column__add-form" data-add-coluna-form>
-      <textarea placeholder="Nome da coluna..." autofocus></textarea>
-      <div class="board-column__add-actions">
-        <button class="btn-add-confirm" data-action="confirmar-nova-coluna">Adicionar</button>
-        <button class="board-column__add-cancel" data-action="cancelar-nova-coluna">&times;</button>
-      </div>
-    </div>
-  ` : `
-    <button class="board-column__nova-btn" data-action="abrir-nova-coluna">${ICON_PLUS} Adicionar outra coluna</button>
-  `
-  return `<div class="board-column board-column--nova">${conteudo}</div>`
-}
-
 function renderBoard() {
-  document.getElementById('board').innerHTML = state.colunas.map(renderColuna).join('') + renderNovaColuna()
+  document.getElementById('board').innerHTML = state.colunas.map(renderColuna).join('')
   setupDragAndDrop()
   setupAddCard()
   setupColunas()
@@ -353,42 +337,6 @@ function setupColunas() {
         }
       } catch (err) {
         showToast('Não foi possível excluir a coluna.')
-      }
-    })
-  })
-
-  document.querySelectorAll('[data-action="abrir-nova-coluna"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.novaColunaAberta = true
-      renderBoard()
-      const textarea = document.querySelector('[data-add-coluna-form] textarea')
-      if (textarea) textarea.focus()
-    })
-  })
-
-  document.querySelectorAll('[data-action="cancelar-nova-coluna"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.novaColunaAberta = false
-      renderBoard()
-    })
-  })
-
-  document.querySelectorAll('[data-action="confirmar-nova-coluna"]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const textarea = document.querySelector('[data-add-coluna-form] textarea')
-      const nome = textarea.value.trim()
-      if (!nome) return
-      try {
-        const novaColuna = await fetchJson('/api/laboratorio/colunas', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome }),
-        })
-        state.colunas.push(novaColuna)
-        state.novaColunaAberta = false
-        renderBoard()
-      } catch (err) {
-        showToast('Não foi possível criar a coluna.')
       }
     })
   })
