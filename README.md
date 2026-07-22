@@ -74,6 +74,33 @@ O protótipo funciona tanto em desktop quanto em celular/tablet. Abaixo de
   por vez (mesmo padrão do Trello mobile). O modal de detalhes do cartão
   empilha a coluna de informações e a de comentários.
 
+## JET-IA (assistente de IA técnico)
+
+A tela **JET-IA** (`wiki.html`, item "JET-IA" da Área Técnica no menu lateral — antigo
+"Wiki", renomeado) já tinha a caixa de busca "Qual a sua dúvida?", que hoje só filtra
+os artigos da base de conhecimento por palavra-chave (`GET /api/wiki?busca=`). Essa
+tela ganhou um segundo caminho: um botão **"Perguntar à JET-IA"** (e a tecla Enter no
+mesmo campo) que envia a pergunta para o fluxo de IA no n8n (projeto irmão
+`JET-IA-ERP/n8n/jet-ia-flow.json`) e mostra a resposta gerada logo abaixo, sem afetar
+o filtro de artigos existente.
+
+- **`public/jetia-config.js`** — URL do webhook do n8n + identificação do colaborador
+  (hoje fixa em `victor.rocha`, já que o login deste protótipo é de usuário único — ver
+  seção "Login" abaixo). **Troque `webhookUrl` pela URL real** gerada ao importar
+  `jet-ia-flow.json` no n8n (produção ou teste) antes de testar.
+- **`public/jetia-widget.js`** — chama o webhook direto do navegador (`fetch`, sem
+  passar pelo Express local), no mesmo espírito do `api-shim.js`: funciona tanto
+  rodando localmente (`npm start`) quanto publicado como site estático. Trata os 3
+  formatos de resposta do fluxo (sucesso `200`, payload inválido `400`, erro interno
+  `500` — ver `JET-IA-ERP/n8n/INTEGRATION.md`).
+- **Atenção — CORS:** como a chamada é feita direto do navegador para o n8n (origem
+  diferente), a instância de n8n precisa permitir CORS para a origem do ERP (ex:
+  `http://localhost:3300` ou o domínio do GitHub Pages). Se o teste falhar com erro de
+  CORS no console do navegador, esse é o motivo — verifique as configurações de CORS
+  da sua instância de n8n (variam entre self-hosted e n8n Cloud).
+- O escopo da IA é só **dúvidas técnicas de equipamentos** (mesma base de
+  conhecimento da tela JET-IA) — não consulta dados financeiros/operacionais do ERP.
+
 ## Menu lateral (sidebar)
 
 A sidebar tem só três ícones — **Cadastro**, **Vendas** e **Área Técnica** —,

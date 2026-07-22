@@ -118,6 +118,15 @@
   <div class="card wiki-search-card">
     <label class="wiki-search-label" for="wiki-busca">Qual a sua dúvida?</label>
     <input type="text" class="search-input wiki-search-input" id="wiki-busca" placeholder="Digite uma palavra-chave: alinhamento de câmera, PSN, teflon, SignMaster..." autofocus />
+    <div class="jetia-ask-row">
+      <button type="button" class="btn btn--primary" id="jetia-ask-btn">Perguntar à JET-IA</button>
+      <span class="jetia-ask-hint">A lista abaixo filtra por palavra-chave; o botão (ou Enter) manda a pergunta para a IA.</span>
+    </div>
+    <div class="jetia-resposta" id="jetia-resposta" hidden>
+      <div class="jetia-resposta__loading" id="jetia-loading" hidden>Consultando a JET-IA...</div>
+      <div class="jetia-resposta__erro" id="jetia-erro" hidden></div>
+      <div class="jetia-resposta__texto" id="jetia-texto" hidden></div>
+    </div>
   </div>
 
   <section class="section">
@@ -139,5 +148,7 @@
 <script src="supabase-config.js"></script>
 <script src="api-shim.js"></script>
 <script src="wiki.js"></script>
+<script src="jetia-config.js"></script>
+<script src="jetia-widget.js"></script>
 </body>
 </html>
