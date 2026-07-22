@@ -124,12 +124,6 @@ router.post('/laboratorio/:id/comentarios', async (req, res) => {
   res.status(201).json(card)
 })
 
-router.post('/laboratorio/colunas', async (req, res) => {
-  const coluna = await laboratorioRepo.criarColuna(req.body.nome)
-  if (!coluna) return res.status(400).json({ erro: 'Nome inválido' })
-  res.status(201).json(coluna)
-})
-
 router.delete('/laboratorio/colunas/:id', async (req, res) => {
   const resultado = await laboratorioRepo.excluirColuna(req.params.id)
   if (resultado.erro === 'not_found') return res.status(404).json({ erro: 'Coluna não encontrada' })

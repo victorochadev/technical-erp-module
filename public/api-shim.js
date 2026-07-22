@@ -413,7 +413,6 @@
   const PRAZO_DIAS_UTEIS = 10
   const SLA_DIAS_UTEIS_ALERTA = 2
   const COLUNAS_RESOLVIDAS = ['finalizado', 'aguardando-coleta', 'coletado']
-  const PALETA_CORES_NOVAS_COLUNAS = ['#64748b', '#3b82f6', '#8b5cf6', '#f59e0b', '#06b6d4', '#22c55e', '#eab308', '#ec4899', '#ef4444', '#14b8a6', '#0ea5e9', '#a3a3a3']
   const SLA_CORES = { padrao: '#22c55e', importante: '#f59e0b', urgente: '#ef4444' }
   const DEFEITOS_POOL_LAB = [
     'Cliente alega desalinhamento.', 'Não liga.', 'Corte impreciso, perdendo tensão da lâmina.',
@@ -485,10 +484,6 @@
 
   function gerarWmsLab() {
     return String(randLab(700000000, 799999999))
-  }
-
-  function slugifyLab(nome) {
-    return nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'coluna'
   }
 
   function calcularSlaLab(dataVencimentoIso, coluna) {
@@ -666,24 +661,6 @@
 
     const colunas = await fetchColunasLab()
     return serializarCardLab(colunas, mapCardLab(atualizado))
-  }
-
-  async function criarColuna(nome) {
-    if (!nome || !nome.trim()) return null
-    const nomeLimpo = nome.trim()
-    const colunas = await fetchColunasLab()
-
-    let id = slugifyLab(nomeLimpo)
-    let sufixo = 2
-    while (colunas.some(c => c.id === id)) {
-      id = `${slugifyLab(nomeLimpo)}-${sufixo}`
-      sufixo++
-    }
-    const cor = PALETA_CORES_NOVAS_COLUNAS[colunas.length % PALETA_CORES_NOVAS_COLUNAS.length]
-
-    const { data, error } = await sb().from('laboratorio_colunas').insert({ id, nome: nomeLimpo, cor, ordem: colunas.length + 1 }).select().single()
-    if (error) throw error
-    return mapColunaLab(data)
   }
 
   async function excluirColuna(id) {
@@ -1117,10 +1094,6 @@
         return { status: 201, body: await criarCardDeAtendimento(body) }
       }
       if (segments[1] === 'colunas') {
-        if (segments.length === 2 && method === 'POST') {
-          const coluna = await criarColuna(body.nome)
-          return coluna ? { status: 201, body: coluna } : { status: 400, body: { erro: 'Nome inválido' } }
-        }
         if (segments.length === 3 && method === 'DELETE') {
           const r = await excluirColuna(segments[2])
           if (r.erro === 'not_found') return { status: 404, body: { erro: 'Coluna não encontrada' } }
