@@ -365,13 +365,8 @@ insert into requisicoes (numero, dt_emissao, funcionario, itens, valor_total, at
 ('6968', '2026-07-14', 'Felipe da Silva Wosgrau Pinheiro', '[{"descricao":"Fonte de Alimentação 24V","qtd":1.42,"valorUnit":380,"valorTotal":540}]', 540, null, '')
 on conflict (numero) do nothing;
 
-insert into wiki_grupos (nome) values
-('G1'),
-('G2'),
-('V/D/SV'),
-('C'),
-('Laminadora')
-on conflict (nome) do nothing;
+-- wiki_grupos / wiki_artigos ficam sem seed — a base de conhecimento (JET-IA)
+-- é populada manualmente pela própria interface.
 
 do $$
 declare

@@ -521,7 +521,7 @@ function setupBotoes() {
     sessionStorage.setItem('atendimento-impressao', JSON.stringify(payload))
     window.open('imprimir.html', '_blank')
   })
-  document.getElementById('btn-wiki').addEventListener('click', () => showToast('Enviar para Wiki — ação de protótipo'))
+  document.getElementById('btn-wiki').addEventListener('click', () => showToast('Enviar para JET-IA — ação de protótipo'))
   document.getElementById('btn-timeline').addEventListener('click', () => showToast('Timeline — ação de protótipo'))
   document.getElementById('btn-laudo').addEventListener('click', () => document.getElementById('input-laudo').focus())
 
