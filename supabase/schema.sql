@@ -208,7 +208,7 @@ begin
       'catalogo_equipamentos', 'catalogo_modelos', 'catalogo_wms',
       'atendimentos', 'instalacoes', 'laboratorio_colunas', 'laboratorio_cards',
       'requisicoes', 'produtos', 'grupos_produto', 'wiki_artigos', 'wiki_grupos',
-      'helpdesk_conversas', 'helpdesk_mensagens'
+      'helpdesk_conversas', 'helpdesk_mensagens', 'jet_ia_historico', 'jet_ia_erros'
     ])
   loop
     execute format('alter table %I enable row level security;', t);
