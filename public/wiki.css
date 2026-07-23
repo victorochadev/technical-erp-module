@@ -1,45 +1,100 @@
-.wiki-search-card { display: flex; flex-direction: column; gap: 10px; }
-.wiki-search-label { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
-.wiki-search-input { width: 100%; padding: 12px 14px; font-size: 0.95rem; }
+:root[data-theme="light"] { --jetia-amber: #b56e12; --jetia-amber-dim: rgba(181, 110, 18, 0.12); }
+:root[data-theme="dark"]  { --jetia-amber: #f2a93c; --jetia-amber-dim: rgba(242, 169, 60, 0.16); }
 
-.list-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
-.wiki-grupo-select {
-  background: var(--bg-input); border: 1px solid var(--border-default); border-radius: var(--radius-sm);
-  color: var(--text-primary); padding: 10px 14px; font-size: 0.88rem; font-family: var(--font);
+.wiki-hero {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  gap: 22px; padding: 56px 24px 40px;
 }
-.wiki-list { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
-.wiki-card { border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: 16px 18px; }
-.wiki-card__titulo { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
-.wiki-card__conteudo {
-  font-size: 0.86rem; color: var(--text-secondary); white-space: pre-line; line-height: 1.55;
-  overflow-wrap: anywhere;
+
+.jetia-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--remoto); background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: 999px; padding: 6px 14px 6px 11px;
 }
-.wiki-card__conteudo a { color: var(--remoto); text-decoration: none; }
-.wiki-card__conteudo a:hover { text-decoration: underline; }
-
-.wiki-empty { color: var(--text-muted); font-size: 0.9rem; padding: 20px 4px; text-align: center; }
-
-.btn {
-  border: none; border-radius: 999px; padding: 9px 20px; font-size: 0.85rem; font-weight: 600;
-  cursor: pointer; font-family: var(--font); display: inline-flex; align-items: center; gap: 6px;
+.jetia-eyebrow__dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--remoto);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
+  animation: jetia-pulse 2.2s ease-in-out infinite;
 }
-.btn--primary { background: var(--remoto); color: #fff; }
-.btn:hover { filter: brightness(1.08); }
+@media (prefers-reduced-motion: reduce) { .jetia-eyebrow__dot { animation: none; } }
+@keyframes jetia-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 
-.jetia-ask-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.jetia-ask-hint { font-size: 0.78rem; color: var(--text-muted); }
+.wiki-hero__title { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text-primary); margin: 0 0 8px; text-wrap: balance; }
+.wiki-hero__subline { font-size: 0.92rem; color: var(--text-secondary); max-width: 52ch; margin: 0 auto; line-height: 1.55; text-wrap: balance; }
+
+.jetia-console {
+  position: relative; width: 100%; max-width: 720px;
+  display: flex; flex-direction: column; gap: 18px; padding: 26px;
+}
+
+.jetia-reg { position: absolute; width: 18px; height: 18px; color: var(--border-default); pointer-events: none; }
+.jetia-reg--tl { top: 8px; left: 8px; }
+.jetia-reg--tr { top: 8px; right: 8px; transform: scaleX(-1); }
+.jetia-reg--bl { bottom: 8px; left: 8px; transform: scaleY(-1); }
+.jetia-reg--br { bottom: 8px; right: 8px; transform: scale(-1, -1); }
+
+.wiki-hero__bar {
+  position: relative; width: 100%; display: flex; align-items: center; gap: 10px;
+  background: var(--bg-input); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 6px 6px 6px 18px; overflow: hidden;
+}
+.wiki-hero__bar::before {
+  content: ""; position: absolute; top: 0; left: -30%; width: 30%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.14), transparent);
+  opacity: 0;
+}
+.wiki-hero__bar:focus-within::before { opacity: 1; animation: jetia-scan 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .wiki-hero__bar:focus-within::before { animation: none; opacity: 0.6; } }
+@keyframes jetia-scan { 0% { transform: translateX(0); } 100% { transform: translateX(430%); } }
+
+.jetia-target { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; }
+
+.wiki-hero__input {
+  position: relative; flex: 1; min-width: 0; border: none; background: transparent; outline: none;
+  font-family: var(--font); font-size: 0.98rem; color: var(--text-primary); padding: 12px 0;
+}
+.wiki-hero__input::placeholder { color: var(--text-muted); }
+
+.wiki-hero__submit {
+  position: relative; flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; border: none;
+  background: var(--remoto); color: #fff; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: filter 0.15s, transform 0.1s;
+}
+.wiki-hero__submit:hover { filter: brightness(1.08); }
+.wiki-hero__submit:active { transform: scale(0.94); }
+.wiki-hero__submit svg { width: 18px; height: 18px; }
+
+.jetia-tags { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.jetia-chip {
+  position: relative; display: inline-flex; align-items: center;
+  font-family: var(--font); font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);
+  background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+  padding: 8px 14px 8px 20px; cursor: pointer;
+}
+.jetia-chip:hover { color: var(--text-primary); border-color: var(--remoto); background: rgba(59, 130, 246, 0.08); }
+.jetia-chip__hole {
+  position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+  width: 5px; height: 5px; border-radius: 50%; background: var(--bg-page);
+  border: 1px solid var(--border-default);
+}
 
 .jetia-resposta {
-  margin-top: 4px; border: 1px solid var(--border-subtle); border-radius: var(--radius);
-  padding: 16px 18px; background: var(--bg-surface);
+  width: 100%; max-width: 720px; margin-top: 4px; text-align: left;
+  border: 1px solid var(--border-subtle); border-left: 3px solid var(--remoto); border-radius: var(--radius);
+  padding: 18px 22px; background: var(--bg-surface);
 }
+.jetia-resposta__label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--remoto); margin: 0 0 10px; }
 .jetia-resposta__loading { font-size: 0.88rem; color: var(--text-muted); }
 .jetia-resposta__erro { font-size: 0.88rem; color: var(--cancelado); }
 .jetia-resposta__texto { font-size: 0.9rem; color: var(--text-primary); line-height: 1.6; overflow-wrap: anywhere; }
+.jetia-resposta__texto a { color: var(--jetia-amber); text-decoration: none; }
+.jetia-resposta__texto a:hover { text-decoration: underline; }
 
 @media (max-width: 768px) {
-  .wiki-search-input { font-size: 0.9rem; }
-  .list-toolbar { flex-wrap: wrap; }
-  .wiki-grupo-select { width: 100%; }
-  .jetia-ask-row { flex-direction: column; align-items: flex-start; }
+  .wiki-hero { padding: 36px 16px 28px; gap: 18px; }
+  .wiki-hero__title { font-size: 1.4rem; }
+  .jetia-console { padding: 18px; }
+  .jetia-tags { justify-content: flex-start; }
 }

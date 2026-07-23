@@ -115,39 +115,48 @@
 
 <main class="main">
 
-  <div class="card wiki-search-card">
-    <label class="wiki-search-label" for="wiki-busca">Qual a sua dúvida?</label>
-    <input type="text" class="search-input wiki-search-input" id="wiki-busca" placeholder="Digite uma palavra-chave: alinhamento de câmera, PSN, teflon, SignMaster..." autofocus />
-    <div class="jetia-ask-row">
-      <button type="button" class="btn btn--primary" id="jetia-ask-btn">Perguntar à JET-IA</button>
-      <span class="jetia-ask-hint">A lista abaixo filtra por palavra-chave; o botão (ou Enter) manda a pergunta para a IA.</span>
+  <div class="wiki-hero">
+
+    <span class="jetia-eyebrow"><span class="jetia-eyebrow__dot"></span>JET-IA · Assistente técnico</span>
+
+    <div>
+      <h2 class="wiki-hero__title">Qual a sua dúvida?</h2>
+      <p class="wiki-hero__subline">Olá! Eu sou a JET-IA e estou aqui para te ajudar. Fique à vontade para perguntar qualquer coisa sobre os equipamentos Bannerjet.</p>
     </div>
+
+    <div class="card jetia-console">
+      <svg class="jetia-reg jetia-reg--tl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 9V2h7"/></svg>
+      <svg class="jetia-reg jetia-reg--tr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 9V2h7"/></svg>
+      <svg class="jetia-reg jetia-reg--bl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 9V2h7"/></svg>
+      <svg class="jetia-reg jetia-reg--br" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 9V2h7"/></svg>
+
+      <div class="wiki-hero__bar">
+        <svg class="jetia-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+        <input type="text" class="wiki-hero__input" id="wiki-busca" placeholder="Escreva sua dúvida" autofocus />
+        <button type="button" class="wiki-hero__submit" id="jetia-ask-btn" aria-label="Perguntar à JET-IA" title="Perguntar à JET-IA">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        </button>
+      </div>
+
+      <div class="jetia-tags">
+        <button type="button" class="jetia-chip" data-q="Como alinhar a câmera da plotter?"><span class="jetia-chip__hole"></span>Plotter · alinhamento de câmera</button>
+        <button type="button" class="jetia-chip" data-q="Quais os principais parâmetros da fibra laser?"><span class="jetia-chip__hole"></span>Fibra Laser · parâmetros</button>
+        <button type="button" class="jetia-chip" data-q="Como trocar a lâmina da guilhotina?"><span class="jetia-chip__hole"></span>Guilhotina · troca de lâmina</button>
+        <button type="button" class="jetia-chip" data-q="Como recuperar a licença do SignMaster?"><span class="jetia-chip__hole"></span>SignMaster · licença</button>
+      </div>
+    </div>
+
     <div class="jetia-resposta" id="jetia-resposta" hidden>
+      <p class="jetia-resposta__label">Resposta</p>
       <div class="jetia-resposta__loading" id="jetia-loading" hidden>Consultando a JET-IA...</div>
       <div class="jetia-resposta__erro" id="jetia-erro" hidden></div>
       <div class="jetia-resposta__texto" id="jetia-texto" hidden></div>
     </div>
-  </div>
 
-  <section class="section">
-    <div class="list-toolbar">
-      <select class="wiki-grupo-select" id="wiki-grupo-filtro">
-        <option value="">Todos os grupos</option>
-      </select>
-    </div>
-    <div class="section-header">
-      <h2 class="section-title">Artigos</h2>
-      <span class="section-badge" id="wiki-count-badge">0 artigos</span>
-    </div>
-    <div class="wiki-list" id="wiki-list"></div>
-  </section>
+  </div>
 
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
-<script src="api-shim.js"></script>
-<script src="wiki.js"></script>
 <script src="jetia-config.js"></script>
 <script src="jetia-widget.js"></script>
 </body>

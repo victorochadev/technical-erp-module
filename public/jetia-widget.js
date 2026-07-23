@@ -4,6 +4,7 @@ function jetiaFormatarResposta(texto) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
     .replace(/\n/g, '<br>')
 }
 
@@ -82,12 +83,34 @@ function setupJetIA() {
   if (!btn) return
   btn.addEventListener('click', jetiaPerguntar)
 
-  document.getElementById('wiki-busca').addEventListener('keydown', e => {
+  const input = document.getElementById('wiki-busca')
+  input.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       e.preventDefault()
       jetiaPerguntar()
     }
   })
+
+  document.querySelectorAll('.jetia-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      input.value = chip.dataset.q || ''
+      input.focus()
+    })
+  })
 }
 
-document.addEventListener('DOMContentLoaded', setupJetIA)
+function setupTheme() {
+  const toggle = document.getElementById('theme-toggle')
+  if (!toggle) return
+  toggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme')
+    const next = current === 'dark' ? 'light' : 'dark'
+    document.documentElement.setAttribute('data-theme', next)
+    localStorage.setItem('at-theme', next)
+  })
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupJetIA()
+  setupTheme()
+})
