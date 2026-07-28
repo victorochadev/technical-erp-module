@@ -14,6 +14,13 @@
 }
 
 :root[data-theme="dark"] {
+  /* No escuro a escala sobe de tom: #1d4ed8 sobre fundo escuro fica sem
+     contraste suficiente para leitura de gráfico. */
+  --grafico-1: #bfdbfe;
+  --grafico-2: #60a5fa;
+  --grafico-3: #2563eb;
+  --grafico-4: #1e3a8a;
+
   --bg-page:        #0f1117;
   --bg-card:        #1a1d27;
   --bg-surface:     #242736;
@@ -33,6 +40,14 @@
   --concluido:   #22c55e;
   --emandamento: #f59e0b;
   --cancelado:   #ef4444;
+
+  /* Paleta dos gráficos do dashboard: só azul, variando o tom para separar as
+     séries. Não usar --presencial/--laboratorio em gráfico — aquelas cores
+     seguem valendo para chips e status nas outras telas. */
+  --grafico-1: #1e3a8a;
+  --grafico-2: #3b82f6;
+  --grafico-3: #93c5fd;
+  --grafico-4: #d3e4fd;
 
   --sidebar-bg:          #14213d;
   --sidebar-icon:        #8ea3c9;
@@ -183,6 +198,23 @@ body {
 }
 .search-input { flex: 1; min-width: 240px; }
 
+/* O select nativo do Windows desenha um realce próprio no hover e no clique,
+   que aparecia como uma "marca" cinza sobre o campo. Removendo a aparência
+   padrão e desenhando a seta manualmente, o campo fica estável nos três
+   estados. O anel de foco continua existindo para quem navega por teclado. */
+.filter-select {
+  -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  padding-right: 32px; cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b6472' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat: no-repeat; background-position: right 10px center; background-size: 15px;
+}
+:root[data-theme="dark"] .filter-select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+}
+.filter-select:focus { outline: none; }
+.filter-select:focus-visible { outline: 2px solid var(--remoto); outline-offset: 2px; }
+.filter-select::-ms-expand { display: none; }
+
 /* MAIN */
 .main { max-width: 1680px; margin: 0 auto; padding: 28px; display: flex; flex-direction: column; gap: 28px; }
 
@@ -193,28 +225,36 @@ body {
 }
 
 /* DASHBOARD */
-.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+/* stretch (e não start) para os cards de uma mesma linha terminarem juntos. */
+.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
 
 .donut-row { display: flex; align-items: center; gap: 20px; margin-top: 4px; }
-.donut {
-  width: 130px; height: 130px; border-radius: 50%; flex-shrink: 0; position: relative;
-  background: conic-gradient(var(--border-subtle) 0% 100%);
-}
-.donut::after {
-  content: ''; position: absolute; inset: 18px; border-radius: 50%; background: var(--bg-card); z-index: 0;
+.donut { width: 130px; height: 130px; flex-shrink: 0; position: relative; }
+
+/* O donut virou SVG: conic-gradient não é animável, arco com stroke-dasharray é.
+   O raio (15.9155) dá circunferência 100, então o dasharray recebe o percentual
+   direto. O giro de -90° põe o início da primeira fatia no topo. */
+.donut-svg { width: 100%; height: 100%; display: block; transform: rotate(-90deg); }
+.donut-trilho { fill: none; stroke: var(--border-subtle); stroke-width: 5.6; }
+.donut-arco {
+  fill: none; stroke-width: 5.6;
+  transition: stroke-dasharray 0.85s cubic-bezier(0.25, 1, 0.4, 1);
 }
 .donut-total {
-  position: absolute; inset: 18px; z-index: 1; display: flex; align-items: center; justify-content: center;
+  position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center;
   font-size: 1.7rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
-.donut-legend { display: flex; flex-direction: column; gap: 10px; font-size: 0.85rem; }
+/* flex:1 faz a legenda ocupar a largura restante do card — sem isso o
+   percentual fica colado no donut e sobra um vazio grande à direita. */
+.donut-legend { display: flex; flex-direction: column; gap: 10px; font-size: 0.85rem; flex: 1; min-width: 0; }
 .legend-item { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); }
 .legend-item b { color: var(--text-primary); margin-left: 2px; }
 .legend-pct { color: var(--text-muted); font-size: 0.78rem; margin-left: auto; padding-left: 12px; }
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.legend-dot--remoto { background: var(--remoto); }
-.legend-dot--presencial { background: var(--presencial); }
-.legend-dot--laboratorio { background: var(--laboratorio); }
+.legend-dot--presencial { background: var(--grafico-1); }
+.legend-dot--remoto { background: var(--grafico-2); }
+.legend-dot--laboratorio { background: var(--grafico-3); }
 .legend-dot--concluido { background: var(--concluido); }
 .legend-dot--emandamento { background: var(--emandamento); }
 .legend-dot--cancelado { background: var(--cancelado); }
@@ -420,3 +460,161 @@ body {
   .sidebar__link svg { width: 18px; height: 18px; }
 }
 .board-column__add-cancel:hover { color: var(--text-primary); }
+
+/* ===================== DASHBOARDS POR CATEGORIA ===================== */
+/* Linha 2 do painel: dashboards à esquerda, Desempenho + Agenda empilhados à
+   direita. A Agenda cresce para ocupar a sobra e as duas colunas terminarem
+   na mesma altura, sem o vão branco. */
+.dashboard-stack { display: flex; flex-direction: column; gap: 20px; }
+.dashboard-stack > .card:last-child { flex: 1; }
+.card--categorias { display: flex; flex-direction: column; }
+
+/* O atributo hidden perde para um display explícito do autor — sem estas duas
+   regras a barra de datas e o selo apareceriam mesmo com hidden aplicado. */
+.live-badge[hidden], .periodo-datas[hidden] { display: none !important; }
+
+.live-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.74rem; font-weight: 600; color: var(--text-secondary);
+  background: var(--bg-surface); border: 1px solid var(--border-subtle);
+  border-radius: 999px; padding: 4px 12px; white-space: nowrap;
+}
+.live-badge__dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--concluido); flex-shrink: 0;
+  animation: live-pulse 2s ease-in-out infinite;
+}
+.live-badge--erro .live-badge__dot { background: var(--cancelado); animation: none; }
+@keyframes live-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .live-badge__dot { animation: none; } }
+
+/* Abas de categoria e presets de período dividem a mesma barra: são dois
+   filtros do mesmo card, não merecem duas faixas empilhadas. */
+.cat-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px 16px;
+  margin-top: 14px; padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle);
+}
+.periodo-presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.periodo-chip {
+  border: 1px solid var(--border-subtle); background: var(--bg-surface);
+  font-family: var(--font); font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);
+  padding: 6px 13px; border-radius: 999px; cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.periodo-chip:hover { color: var(--text-primary); border-color: var(--border-default); }
+.periodo-chip--active {
+  background: var(--remoto); border-color: var(--remoto); color: #fff;
+}
+.periodo-chip--active:hover { color: #fff; }
+
+.periodo-datas {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin-top: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle);
+}
+.periodo-data { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--text-secondary); }
+.periodo-input {
+  background: var(--bg-input); border: 1px solid var(--border-default); border-radius: var(--radius-sm);
+  color: var(--text-primary); padding: 6px 10px; font-size: 0.8rem; font-family: var(--font);
+}
+:root[data-theme="dark"] .periodo-input::-webkit-calendar-picker-indicator { filter: invert(0.8); }
+
+.cat-stats { margin-top: 18px; }
+.cat-stats .stat-card {
+  background: var(--bg-surface); border-color: transparent;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.cat-stats .stat-card:hover { background: var(--bg-card); border-color: var(--border-subtle); transform: translateY(-2px); }
+.cat-stats .stat-card__big { font-size: 1.55rem; font-variant-numeric: tabular-nums; min-height: 1.9rem; }
+.cat-stats .stat-card__hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Entrada suave do conteúdo ao trocar de aba ou de período. */
+.cat-entrada { animation: cat-surge 0.4s cubic-bezier(0.25, 1, 0.4, 1) both; }
+@keyframes cat-surge {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Modalidades e Equipamentos lado a lado: o card fica na altura do conteúdo
+   em vez de virar uma coluna comprida. */
+.cat-cols { display: grid; grid-template-columns: 0.92fr 1.08fr; gap: 0 28px; margin-top: 4px; }
+.cat-cols > .cat-block + .cat-block { border-left: 1px solid var(--border-subtle); padding-left: 28px; }
+.cat-block { margin-top: 22px; min-width: 0; display: flex; flex-direction: column; }
+/* Empurra a nota de "sem preenchimento" para o rodapé, alinhando as duas colunas. */
+.cat-block .cat-rodape { margin-top: auto; padding-top: 14px; }
+.cat-block__title {
+  font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-muted); margin-bottom: 14px;
+}
+
+.donut--sm { width: 108px; height: 108px; }
+.donut--sm .donut-total { font-size: 1.4rem; }
+/* A coluna de Equipamentos é mais alta que a de Modalidades. Sem flex:1 aqui,
+   a folga toda se acumulava embaixo do donut e ele ficava jogado no topo —
+   crescendo, o align-items:center centraliza o conjunto na altura da coluna. */
+.cat-cols .donut-row { gap: 14px; align-items: center; flex: 1; }
+.cat-cols .donut-legend { font-size: 0.78rem; gap: 9px; }
+.cat-cols .legend-item { white-space: nowrap; }
+.cat-cols .legend-pct { padding-left: 8px; }
+
+/* Gráfico de colunas (Equipamentos). Se entrarem muitos modelos, o gráfico
+   rola na horizontal em vez de espremer as colunas até virarem fios. */
+.col-chart {
+  display: flex; align-items: flex-end; gap: 14px;
+  height: 168px; margin-top: 2px; overflow-x: auto; overflow-y: hidden;
+}
+.col-item {
+  flex: 1 1 0; min-width: 56px; height: 100%;
+  display: flex; flex-direction: column; align-items: center;
+}
+.col-item__valor {
+  font-size: 0.82rem; font-weight: 700; color: var(--text-primary);
+  margin-bottom: 6px; font-variant-numeric: tabular-nums;
+}
+.col-item__trilho {
+  flex: 1; width: 100%; display: flex; align-items: flex-end;
+  border-bottom: 1px solid var(--border-subtle);
+}
+/* max-width evita a coluna virar um bloco largo quando há poucos modelos. */
+.col-item__barra {
+  width: 100%; max-width: 62px; margin: 0 auto; min-height: 3px; border-radius: 5px 5px 0 0;
+  transition: height 0.75s cubic-bezier(0.25, 1, 0.4, 1), filter 0.2s ease;
+}
+.col-item:hover .col-item__barra { filter: brightness(1.12); }
+.col-item__rotulo {
+  margin-top: 9px; font-size: 0.76rem; font-weight: 600; color: var(--text-primary);
+  text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.col-item__pct { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
+
+/* Quem pediu menos movimento no sistema recebe o resultado final direto. */
+@media (prefers-reduced-motion: reduce) {
+  .donut-arco, .col-item__barra { transition: none; }
+  .cat-entrada { animation: none; }
+  .cat-stats .stat-card { transition: none; }
+}
+
+.cat-rodape { font-size: 0.76rem; color: var(--text-muted); margin-top: 12px; }
+
+.cat-msg { color: var(--text-muted); font-size: 0.85rem; line-height: 1.55; padding: 28px 2px; }
+.cat-msg b { color: var(--text-secondary); font-weight: 600; }
+.cat-msg code {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size: 0.78rem;
+  background: var(--bg-surface); border: 1px solid var(--border-subtle);
+  border-radius: 4px; padding: 1px 5px;
+}
+.cat-msg--erro { color: var(--cancelado); }
+
+/* Sobrescreve o mobile das regras acima — precisa vir depois do @media base. */
+@media (max-width: 1180px) {
+  .cat-cols { grid-template-columns: 1fr; gap: 4px; }
+  .cat-cols > .cat-block + .cat-block { border-left: none; padding-left: 0; }
+  .cat-block .cat-rodape { margin-top: 12px; padding-top: 0; }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid--categorias { grid-template-columns: 1fr; }
+  .dashboard-stack { gap: 18px; }
+  .cat-stats { grid-template-columns: 1fr; }
+  .periodo-datas { flex-direction: column; align-items: stretch; }
+  .periodo-data { justify-content: space-between; }
+}

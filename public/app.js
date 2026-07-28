@@ -1,12 +1,23 @@
 const state = {
   mes: null,
   desempenhoTipo: 'Laboratório',
+  categoria: 'remoto',
+  periodo: { preset: 'mes', inicio: null, fim: null },
+}
+
+// Barras de equipamento: um tom de azul por aba, dentro da mesma escala dos
+// demais gráficos.
+const COR_CATEGORIA = {
+  remoto: 'var(--grafico-2)',
+  presencial: 'var(--grafico-1)',
+  laboratorio: 'var(--grafico-3)',
 }
 
 const MESES_PT = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 const DIAS_SEMANA_PT = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
 
 function mesLabel(mes) {
+  if (!mes) return 'no período'
   const [ano, mm] = mes.split('-')
   return `${MESES_PT[parseInt(mm, 10) - 1]} de ${ano}`
 }
@@ -17,14 +28,100 @@ async function fetchJson(url) {
   return res.json()
 }
 
-function setDonut(el, segments) {
-  let acc = 0
-  const stops = segments.map(s => {
-    const start = acc
-    acc += s.percentual
-    return `${s.color} ${start}% ${acc}%`
+const SVG_NS = 'http://www.w3.org/2000/svg'
+
+// Raio escolhido para a circunferência dar exatamente 100 (2πr = 100), assim o
+// stroke-dasharray recebe o percentual direto, sem conversão.
+const RAIO_DONUT = 15.9155
+
+function semAnimacao() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+// O donut é SVG (e não mais conic-gradient) porque gradiente cônico não é
+// animável — com arcos dá para desenhar cada fatia progressivamente.
+function setDonut(el, segmentos, animar = true) {
+  const rotulo = el.querySelector('.donut-total')
+  el.querySelectorAll('svg').forEach(n => n.remove())
+
+  const svg = document.createElementNS(SVG_NS, 'svg')
+  svg.setAttribute('viewBox', '0 0 42 42')
+  svg.setAttribute('class', 'donut-svg')
+  svg.setAttribute('aria-hidden', 'true')
+
+  const circulo = (classe) => {
+    const c = document.createElementNS(SVG_NS, 'circle')
+    c.setAttribute('class', classe)
+    c.setAttribute('cx', '21')
+    c.setAttribute('cy', '21')
+    c.setAttribute('r', String(RAIO_DONUT))
+    return c
+  }
+
+  svg.appendChild(circulo('donut-trilho'))
+
+  let deslocamento = 0
+  const arcos = []
+  for (const s of segmentos) {
+    const arco = circulo('donut-arco')
+    arco.style.stroke = s.color
+    arco.style.strokeDashoffset = String(-deslocamento)
+    arco.style.strokeDasharray = animar ? '0 100' : `${s.percentual} ${100 - s.percentual}`
+    svg.appendChild(arco)
+    arcos.push([arco, s.percentual])
+    deslocamento += s.percentual
+  }
+
+  el.insertBefore(svg, rotulo || null)
+
+  if (!animar) return
+  requestAnimationFrame(() => {
+    arcos.forEach(([arco, pct], i) => {
+      arco.style.transitionDelay = `${i * 110}ms`
+      arco.style.strokeDasharray = `${pct} ${100 - pct}`
+    })
   })
-  el.style.background = `conic-gradient(${stops.join(', ')})`
+}
+
+// Contagem progressiva dos números grandes. Lê o alvo do data-num para o
+// texto final ser sempre exato, sem depender do último quadro da animação.
+function animarNumeros(escopo) {
+  escopo.querySelectorAll('[data-num]').forEach((el, i) => {
+    const alvo = parseFloat(el.dataset.num)
+    const sufixo = el.dataset.sufixo || ''
+    const casas = Number(el.dataset.casas || 0)
+    const final = alvo.toFixed(casas) + sufixo
+
+    if (!isFinite(alvo) || semAnimacao()) { el.textContent = final; return }
+
+    const duracao = 650
+    const atraso = i * 70
+    let inicio = null
+    el.textContent = (0).toFixed(casas) + sufixo
+
+    function passo(agora) {
+      if (inicio === null) inicio = agora
+      const t = Math.min(1, (agora - inicio - atraso) / duracao)
+      if (t < 0) return requestAnimationFrame(passo)
+      const suave = 1 - Math.pow(1 - t, 3)
+      el.textContent = (alvo * suave).toFixed(casas) + sufixo
+      if (t < 1) requestAnimationFrame(passo)
+      else el.textContent = final
+    }
+    requestAnimationFrame(passo)
+  })
+}
+
+// Barras e colunas nascem em 0 no HTML e só então recebem a medida real, senão
+// o navegador pinta direto no valor final e a transição não roda.
+function animarGraficos(escopo, animar) {
+  escopo.querySelectorAll('[data-largura], [data-altura]').forEach((el, i) => {
+    if (animar && !semAnimacao()) el.style.transitionDelay = `${i * 80}ms`
+    requestAnimationFrame(() => {
+      if (el.dataset.largura) el.style.width = el.dataset.largura
+      if (el.dataset.altura) el.style.height = el.dataset.altura
+    })
+  })
 }
 
 async function loadMeses() {
@@ -52,7 +149,8 @@ function qsMes() {
 async function renderResumo() {
   const resumo = await fetchJson(`/api/dashboard/resumo${qsMes()}`)
 
-  document.getElementById('kpi-total').textContent = resumo.total
+  const kpiTotal = document.getElementById('kpi-total')
+  kpiTotal.dataset.num = resumo.total
 
   document.getElementById('tipo-presencial-count').textContent = resumo.porTipo.presencial.total
   document.getElementById('tipo-presencial-pct').textContent = `${resumo.porTipo.presencial.percentual}%`
@@ -61,11 +159,13 @@ async function renderResumo() {
   document.getElementById('tipo-laboratorio-count').textContent = resumo.porTipo.laboratorio.total
   document.getElementById('tipo-laboratorio-pct').textContent = `${resumo.porTipo.laboratorio.percentual}%`
 
-  setDonut(document.getElementById('donut-tipo'), [
-    { percentual: resumo.porTipo.presencial.percentual, color: 'var(--presencial)' },
-    { percentual: resumo.porTipo.remoto.percentual, color: 'var(--remoto)' },
-    { percentual: resumo.porTipo.laboratorio.percentual, color: 'var(--laboratorio)' },
-  ])
+  const donutTipo = document.getElementById('donut-tipo')
+  setDonut(donutTipo, [
+    { percentual: resumo.porTipo.presencial.percentual, color: 'var(--grafico-1)' },
+    { percentual: resumo.porTipo.remoto.percentual, color: 'var(--grafico-2)' },
+    { percentual: resumo.porTipo.laboratorio.percentual, color: 'var(--grafico-3)' },
+  ].filter(s => s.percentual > 0))
+  animarNumeros(donutTipo)
 
   document.getElementById('status-concluido-count').textContent = resumo.porStatus.concluido.total
   document.getElementById('status-concluido-hint').textContent = `${resumo.porStatus.concluido.percentual}% do total no mês`
@@ -116,6 +216,307 @@ function setupDesempenhoTabs() {
     tabs.forEach(t => t.classList.toggle('tab--active', t === tab))
     renderDesempenho()
   }))
+}
+
+// ─────────────── Dashboards por Categoria (planilhas do Google) ───────────────
+
+// Os rótulos vêm de planilha preenchida por gente, não do nosso banco — escapar
+// antes de jogar no innerHTML.
+function esc(texto) {
+  return String(texto ?? '').replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ))
+}
+
+function setLiveBadge(dados) {
+  const badge = document.getElementById('categoria-live')
+  const texto = document.getElementById('categoria-live-texto')
+
+  if (!dados || dados.estado !== 'ok') {
+    badge.hidden = dados?.estado !== 'erro'
+    if (dados?.estado === 'erro') {
+      badge.classList.add('live-badge--erro')
+      texto.textContent = 'sem conexão com a planilha'
+    }
+    return
+  }
+
+  badge.hidden = false
+  badge.classList.remove('live-badge--erro')
+  const hora = dados.atualizadoEm.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  texto.textContent = `atualizado · ${hora}`
+}
+
+function htmlMensagemCategoria(dados, categoria) {
+  if (dados.estado === 'erro') {
+    return `<div class="cat-msg cat-msg--erro">
+      Não foi possível ler a planilha.<br><b>${esc(dados.mensagem)}</b>
+    </div>`
+  }
+
+  if (categoria !== 'remoto') {
+    return `<div class="cat-msg">
+      <b>Aguardando fonte de dados.</b><br>
+      Assim que a planilha de ${esc(dados.rotulo)} for definida, basta preencher
+      <code>sheets-config.js</code> que os dashboards aparecem aqui.
+    </div>`
+  }
+
+  return `<div class="cat-msg">
+    <b>Planilha ainda não conectada.</b><br>
+    Publique a aba em CSV (Arquivo → Compartilhar → Publicar na web) e cole a URL
+    em <code>csvUrl</code> dentro de <code>sheets-config.js</code>.
+  </div>`
+}
+
+// ───────────────────────────── Período ─────────────────────────────
+
+function paraISO(data) {
+  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`
+}
+
+function formatarDataBR(iso) {
+  if (!iso) return ''
+  const [ano, mes, dia] = iso.split('-')
+  return `${dia}/${mes}/${ano}`
+}
+
+// 'mes' acompanha o seletor de mês do cabeçalho, mantendo o card em sintonia
+// com o resto do painel.
+function periodoDoMes() {
+  const base = state.mes || paraISO(new Date()).slice(0, 7)
+  const [ano, mesNum] = base.split('-').map(Number)
+  return { inicio: `${base}-01`, fim: paraISO(new Date(ano, mesNum, 0)) }
+}
+
+// Traduz o preset escolhido em { inicio, fim } no formato ISO. 'tudo' devolve
+// nulos de propósito: é o sinal para a camada de dados não filtrar nada.
+function calcularPeriodo() {
+  const { preset, inicio, fim } = state.periodo
+
+  if (preset === 'custom') return { inicio: inicio || null, fim: fim || null }
+  if (preset === 'tudo') return { inicio: null, fim: null }
+
+  if (preset === 'hoje') {
+    const dia = paraISO(new Date())
+    return { inicio: dia, fim: dia }
+  }
+
+  if (preset === '7d') {
+    const hoje = new Date()
+    const de = new Date(hoje)
+    de.setDate(de.getDate() - 6)
+    return { inicio: paraISO(de), fim: paraISO(hoje) }
+  }
+
+  return periodoDoMes()
+}
+
+function rotuloPeriodo() {
+  const { preset } = state.periodo
+  const { inicio, fim } = calcularPeriodo()
+  if (preset === 'tudo' || !inicio || !fim) return 'em todo o histórico'
+  if (preset === 'mes') return `em ${mesLabel(state.mes)}`
+  if (inicio === fim) return `em ${formatarDataBR(inicio)}`
+  return `de ${formatarDataBR(inicio)} a ${formatarDataBR(fim)}`
+}
+
+function setupPeriodo() {
+  const chips = document.querySelectorAll('#periodo-presets .periodo-chip')
+  const painelDatas = document.getElementById('periodo-datas')
+  const campoInicio = document.getElementById('periodo-inicio')
+  const campoFim = document.getElementById('periodo-fim')
+
+  chips.forEach(chip => chip.addEventListener('click', () => {
+    // Precisa ser lido ANTES de trocar o preset: depois da troca,
+    // calcularPeriodo() já responderia pelo 'custom' (vazio) e a semente
+    // abaixo herdaria de si mesma.
+    const anterior = calcularPeriodo()
+
+    state.periodo.preset = chip.dataset.preset
+    chips.forEach(c => c.classList.toggle('periodo-chip--active', c === chip))
+    painelDatas.hidden = state.periodo.preset !== 'custom'
+
+    // Ao abrir o personalizado pela primeira vez, parte do período que já
+    // estava em tela em vez de dois campos vazios.
+    if (state.periodo.preset === 'custom' && !state.periodo.inicio) {
+      const semente = anterior.inicio && anterior.fim ? anterior : periodoDoMes()
+      state.periodo.inicio = campoInicio.value = semente.inicio
+      state.periodo.fim = campoFim.value = semente.fim
+    }
+    renderCategoria()
+  }))
+
+  campoInicio.addEventListener('change', () => { state.periodo.inicio = campoInicio.value; renderCategoria() })
+  campoFim.addEventListener('change', () => { state.periodo.fim = campoFim.value; renderCategoria() })
+}
+
+// ─────────────────────── Render do card de categoria ───────────────────────
+
+// Só entram aqui números que os gráficos abaixo NÃO mostram. O total do período
+// não aparece em lugar nenhum (o donut conta só quem tem modalidade) e a
+// cobertura do preenchimento é o que diz se dá para confiar nas fatias.
+function htmlStatTiles(dados) {
+  const principal = [...dados.porModalidade].sort((a, b) => b.total - a.total)[0]
+  const temPrincipal = principal && principal.total > 0
+  const cobertura = dados.total === 0 ? 0 : Math.round((dados.comModalidade / dados.total) * 1000) / 10
+
+  const tiles = [
+    { rotulo: 'Atendimentos', num: dados.total, hint: rotuloPeriodo() },
+    {
+      rotulo: 'Modalidade principal',
+      num: temPrincipal ? principal.percentual : null,
+      sufixo: '%', casas: 1,
+      hint: temPrincipal ? principal.rotulo : 'sem modalidade preenchida',
+      cor: temPrincipal ? principal.cor : null,
+    },
+    {
+      rotulo: 'Classificados',
+      num: cobertura, sufixo: '%', casas: 1,
+      hint: `${dados.comModalidade} de ${dados.total} com modalidade`,
+    },
+  ]
+
+  return `<div class="stat-row cat-stats">${tiles.map(t => `
+    <div class="stat-card">
+      <span class="stat-card__label">
+        ${t.cor ? `<span class="stat-card__dot" style="background:${t.cor}"></span>` : ''}${esc(t.rotulo)}
+      </span>
+      <span class="stat-card__big"${t.num === null ? '' : ` data-num="${t.num}" data-sufixo="${t.sufixo || ''}" data-casas="${t.casas || 0}"`}>${t.num === null ? '—' : ''}</span>
+      <span class="stat-card__hint" title="${esc(t.hint)}">${esc(t.hint)}</span>
+    </div>
+  `).join('')}</div>`
+}
+
+// Gráfico de colunas. A altura de cada coluna é relativa ao maior valor, e não
+// ao percentual, senão uma série com todos os valores baixos ficaria rasteira.
+function htmlColunas(itens, vazio, cor) {
+  if (itens.length === 0) return `<div class="agenda-empty">${esc(vazio)}</div>`
+
+  const maior = Math.max(...itens.map(i => i.total))
+  return `<div class="col-chart">${itens.map(i => `
+    <div class="col-item">
+      <span class="col-item__valor">${i.total}</span>
+      <div class="col-item__trilho">
+        <div class="col-item__barra" style="height:0;background:${cor || 'var(--grafico-2)'}"
+             data-altura="${maior === 0 ? 0 : (i.total / maior) * 100}%"></div>
+      </div>
+      <span class="col-item__rotulo" title="${esc(i.rotulo)}">${esc(i.rotulo)}</span>
+      <span class="col-item__pct">${i.percentual}%</span>
+    </div>
+  `).join('')}</div>`
+}
+
+// Deixa explícito quanto do período ficou de fora do gráfico, para ninguém ler
+// as fatias como se cobrissem todos os atendimentos.
+function htmlSemPreenchimento(quantidade, texto) {
+  if (!quantidade || quantidade <= 0) return ''
+  return `<div class="cat-rodape">${quantidade} registro${quantidade !== 1 ? 's' : ''} ${texto}</div>`
+}
+
+// Guarda o retrato do que está desenhado: a releitura automática a cada 60s não
+// deve reanimar tudo se nada mudou — só a troca de aba/período ou dado novo.
+let assinaturaCategoria = null
+
+async function renderCategoria() {
+  const container = document.getElementById('categoria-conteudo')
+  const categoria = state.categoria
+  const periodo = calcularPeriodo()
+  const dados = await window.SheetsSource.carregarCategoria(categoria, periodo)
+
+  // A aba pode ter mudado enquanto a planilha era lida.
+  if (state.categoria !== categoria) return
+
+  const assinatura = JSON.stringify([
+    categoria, periodo, dados.estado, dados.total,
+    dados.porModalidade?.map(m => m.total), dados.porEquipamento?.map(e => [e.rotulo, e.total]),
+  ])
+  const animar = assinatura !== assinaturaCategoria
+  assinaturaCategoria = assinatura
+
+  setLiveBadge(dados)
+
+  if (dados.estado !== 'ok') {
+    container.innerHTML = htmlMensagemCategoria(dados, categoria)
+    return
+  }
+
+  if (dados.total === 0) {
+    const dica = dados.comData > 0
+      ? `<br>A planilha tem <b>${dados.comData}</b> registro${dados.comData !== 1 ? 's' : ''} datado${dados.comData !== 1 ? 's' : ''} fora desse intervalo${dados.primeiraData ? ` (o mais antigo em ${formatarDataBR(dados.primeiraData)})` : ''}.`
+      : ''
+    container.innerHTML = `<div class="cat-msg">Nenhum registro ${esc(rotuloPeriodo())}.${dica}</div>`
+    return
+  }
+
+  const comValor = dados.porModalidade.filter(m => m.total > 0)
+  const legenda = dados.porModalidade.map(m => `
+    <div class="legend-item">
+      <span class="legend-dot" style="background:${m.cor}"></span>${esc(m.rotulo)}
+      <b>${m.total}</b> <span class="legend-pct">${m.percentual}%</span>
+    </div>
+  `).join('')
+
+  const semData = dados.temColunaData
+    ? ''
+    : '<div class="cat-rodape">A planilha não tem coluna de data — exibindo todos os registros.</div>'
+
+  const cor = COR_CATEGORIA[categoria]
+
+  container.innerHTML = `
+    ${htmlStatTiles(dados)}
+    ${semData}
+    <div class="cat-cols">
+      <div class="cat-block">
+        <div class="cat-block__title">Modalidades</div>
+        <div class="donut-row">
+          <div class="donut donut--sm" id="donut-categoria">
+            <span class="donut-total" data-num="${dados.comModalidade}"></span>
+          </div>
+          <div class="donut-legend">${legenda}</div>
+        </div>
+        ${htmlSemPreenchimento(dados.semModalidade, 'sem modalidade preenchida')}
+      </div>
+      <div class="cat-block">
+        <div class="cat-block__title">Equipamentos</div>
+        ${htmlColunas(dados.porEquipamento, 'Nenhum equipamento registrado no período', cor)}
+        ${htmlSemPreenchimento(dados.semEquipamento, 'sem equipamento preenchido')}
+      </div>
+    </div>
+  `
+
+  // Sem modalidade preenchida na planilha o donut ficaria vazio — melhor um
+  // anel neutro do que nenhum desenho.
+  const segmentos = comValor.length > 0
+    ? comValor.map(m => ({ percentual: m.percentual, color: m.cor }))
+    : [{ percentual: 100, color: 'var(--border-subtle)' }]
+
+  setDonut(document.getElementById('donut-categoria'), segmentos, animar)
+  animarGraficos(container, animar)
+  if (animar) {
+    animarNumeros(container)
+    container.classList.remove('cat-entrada')
+    void container.offsetWidth  // reinicia a animação de entrada
+    container.classList.add('cat-entrada')
+  } else {
+    container.querySelectorAll('[data-num]').forEach(el => {
+      el.textContent = Number(el.dataset.num).toFixed(Number(el.dataset.casas || 0)) + (el.dataset.sufixo || '')
+    })
+  }
+}
+
+function setupCategoriaTabs() {
+  const tabs = document.querySelectorAll('#categoria-tabs .tab')
+  tabs.forEach(tab => tab.addEventListener('click', () => {
+    state.categoria = tab.dataset.categoria
+    tabs.forEach(t => t.classList.toggle('tab--active', t === tab))
+    renderCategoria()
+  }))
+}
+
+function iniciarAtualizacaoAoVivo() {
+  const segundos = window.SHEETS_CONFIG?.refreshSeconds || 60
+  setInterval(renderCategoria, Math.max(15, segundos) * 1000)
 }
 
 function chipClasseTipo(tipo) {
@@ -180,14 +581,17 @@ function setupTheme() {
 }
 
 async function renderAll() {
-  await Promise.all([renderResumo(), renderDesempenho(), renderAgendaSemana()])
+  await Promise.all([renderResumo(), renderDesempenho(), renderAgendaSemana(), renderCategoria()])
 }
 
 async function init() {
   setupTheme()
   setupDesempenhoTabs()
+  setupCategoriaTabs()
+  setupPeriodo()
   await loadMeses()
   await renderAll()
+  iniciarAtualizacaoAoVivo()
 }
 
 document.addEventListener('DOMContentLoaded', init)
