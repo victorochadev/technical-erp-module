@@ -155,6 +155,22 @@ create table if not exists produtos (
   created_at timestamptz not null default now()
 );
 
+create table if not exists cargos_salarios (
+  id bigint generated always as identity primary key,
+  nome text not null unique,
+  salario_base numeric(12, 2) not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists funcionarios (
+  id bigint generated always as identity primary key,
+  nome text not null,
+  cargo text,
+  telefone text,
+  email text,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists grupos_produto (
   id bigint generated always as identity primary key,
   nome text not null unique,
@@ -208,7 +224,8 @@ begin
       'catalogo_equipamentos', 'catalogo_modelos', 'catalogo_wms',
       'atendimentos', 'instalacoes', 'laboratorio_colunas', 'laboratorio_cards',
       'requisicoes', 'produtos', 'grupos_produto', 'wiki_artigos', 'wiki_grupos',
-      'helpdesk_conversas', 'helpdesk_mensagens', 'jet_ia_historico', 'jet_ia_erros'
+      'helpdesk_conversas', 'helpdesk_mensagens', 'jet_ia_historico', 'jet_ia_erros',
+      'cargos_salarios', 'funcionarios'
     ])
   loop
     execute format('alter table %I enable row level security;', t);

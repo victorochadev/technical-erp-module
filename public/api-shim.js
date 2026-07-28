@@ -911,6 +911,87 @@
     return data ? mapGrupoProduto(data) : null
   }
 
+  // ───────────────────────── funcionários ─────────────────────────
+
+  function mapFuncionario(row) {
+    return { id: row.id, nome: row.nome, cargo: row.cargo || '', telefone: row.telefone || '', email: row.email || '' }
+  }
+
+  async function listFuncionarios({ busca } = {}) {
+    const { data, error } = await sb().from('funcionarios').select('*').order('nome')
+    if (error) throw error
+    const funcionarios = data.map(mapFuncionario)
+    if (!busca) return funcionarios
+    const alvo = busca.toLowerCase()
+    return funcionarios.filter(f => `${f.nome} ${f.cargo}`.toLowerCase().includes(alvo))
+  }
+
+  async function buscarFuncionarioPorId(id) {
+    const { data, error } = await sb().from('funcionarios').select('*').eq('id', Number(id)).maybeSingle()
+    if (error) throw error
+    return data ? mapFuncionario(data) : null
+  }
+
+  async function criarFuncionario(dados) {
+    const { data, error } = await sb()
+      .from('funcionarios')
+      .insert({ nome: dados.nome || '', cargo: dados.cargo || '', telefone: dados.telefone || '', email: dados.email || '' })
+      .select()
+      .single()
+    if (error) throw error
+    return mapFuncionario(data)
+  }
+
+  async function atualizarFuncionario(id, dados) {
+    const { data, error } = await sb()
+      .from('funcionarios')
+      .update({ nome: dados.nome || '', cargo: dados.cargo || '', telefone: dados.telefone || '', email: dados.email || '' })
+      .eq('id', Number(id))
+      .select()
+      .maybeSingle()
+    if (error) throw error
+    return data ? mapFuncionario(data) : null
+  }
+
+  // ───────────────────────── cargos e salários ─────────────────────────
+
+  function mapCargoSalario(row) {
+    return { id: row.id, nome: row.nome, salarioBase: Number(row.salario_base) }
+  }
+
+  async function listCargosSalarios() {
+    const { data, error } = await sb().from('cargos_salarios').select('*').order('nome')
+    if (error) throw error
+    return data.map(mapCargoSalario)
+  }
+
+  async function buscarCargoSalarioPorId(id) {
+    const { data, error } = await sb().from('cargos_salarios').select('*').eq('id', Number(id)).maybeSingle()
+    if (error) throw error
+    return data ? mapCargoSalario(data) : null
+  }
+
+  async function criarCargoSalario(dados) {
+    const { data, error } = await sb()
+      .from('cargos_salarios')
+      .insert({ nome: dados.nome || '', salario_base: dados.salarioBase || 0 })
+      .select()
+      .single()
+    if (error) throw error
+    return mapCargoSalario(data)
+  }
+
+  async function atualizarCargoSalario(id, dados) {
+    const { data, error } = await sb()
+      .from('cargos_salarios')
+      .update({ nome: dados.nome || '', salario_base: dados.salarioBase || 0 })
+      .eq('id', Number(id))
+      .select()
+      .maybeSingle()
+    if (error) throw error
+    return data ? mapCargoSalario(data) : null
+  }
+
   // ───────────────────────── wiki ─────────────────────────
 
   function mapWikiArtigo(row) {
@@ -1163,6 +1244,40 @@
         if (method === 'PUT') {
           const g = await atualizarGrupoProduto(segments[1], body)
           return g ? { status: 200, body: g } : { status: 404, body: { erro: 'Grupo de produto não encontrado' } }
+        }
+      }
+    }
+
+    if (segments[0] === 'funcionarios') {
+      if (segments.length === 1) {
+        if (method === 'GET') return { status: 200, body: await listFuncionarios({ busca: searchParams.get('busca') }) }
+        if (method === 'POST') return { status: 201, body: await criarFuncionario(body) }
+      }
+      if (segments.length === 2) {
+        if (method === 'GET') {
+          const f = await buscarFuncionarioPorId(segments[1])
+          return f ? { status: 200, body: f } : { status: 404, body: { erro: 'Funcionário não encontrado' } }
+        }
+        if (method === 'PUT') {
+          const f = await atualizarFuncionario(segments[1], body)
+          return f ? { status: 200, body: f } : { status: 404, body: { erro: 'Funcionário não encontrado' } }
+        }
+      }
+    }
+
+    if (segments[0] === 'cargos-salarios') {
+      if (segments.length === 1) {
+        if (method === 'GET') return { status: 200, body: await listCargosSalarios() }
+        if (method === 'POST') return { status: 201, body: await criarCargoSalario(body) }
+      }
+      if (segments.length === 2) {
+        if (method === 'GET') {
+          const c = await buscarCargoSalarioPorId(segments[1])
+          return c ? { status: 200, body: c } : { status: 404, body: { erro: 'Cargo não encontrado' } }
+        }
+        if (method === 'PUT') {
+          const c = await atualizarCargoSalario(segments[1], body)
+          return c ? { status: 200, body: c } : { status: 404, body: { erro: 'Cargo não encontrado' } }
         }
       }
     }

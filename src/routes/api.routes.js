@@ -13,6 +13,8 @@ const gruposProdutoRepo = require('../data/gruposProdutoRepository')
 const wikiRepo = require('../data/wikiRepository')
 const wikiGruposRepo = require('../data/wikiGruposRepository')
 const helpdeskRepo = require('../data/helpdeskRepository')
+const funcionariosRepo = require('../data/funcionariosRepository')
+const cargosSalariosRepo = require('../data/cargosSalariosRepository')
 
 const router = express.Router()
 
@@ -241,6 +243,48 @@ router.get('/wiki-grupos', async (req, res) => {
 router.post('/wiki-grupos', async (req, res) => {
   const grupo = await wikiGruposRepo.criarWikiGrupo(req.body)
   res.status(201).json(grupo)
+})
+
+router.get('/funcionarios', async (req, res) => {
+  res.json(await funcionariosRepo.listFuncionarios({ busca: req.query.busca }))
+})
+
+router.post('/funcionarios', async (req, res) => {
+  const funcionario = await funcionariosRepo.criarFuncionario(req.body)
+  res.status(201).json(funcionario)
+})
+
+router.get('/funcionarios/:id', async (req, res) => {
+  const funcionario = await funcionariosRepo.buscarFuncionarioPorId(req.params.id)
+  if (!funcionario) return res.status(404).json({ erro: 'Funcionário não encontrado' })
+  res.json(funcionario)
+})
+
+router.put('/funcionarios/:id', async (req, res) => {
+  const funcionario = await funcionariosRepo.atualizarFuncionario(req.params.id, req.body)
+  if (!funcionario) return res.status(404).json({ erro: 'Funcionário não encontrado' })
+  res.json(funcionario)
+})
+
+router.get('/cargos-salarios', async (req, res) => {
+  res.json(await cargosSalariosRepo.listCargosSalarios())
+})
+
+router.post('/cargos-salarios', async (req, res) => {
+  const cargo = await cargosSalariosRepo.criarCargoSalario(req.body)
+  res.status(201).json(cargo)
+})
+
+router.get('/cargos-salarios/:id', async (req, res) => {
+  const cargo = await cargosSalariosRepo.buscarCargoSalarioPorId(req.params.id)
+  if (!cargo) return res.status(404).json({ erro: 'Cargo não encontrado' })
+  res.json(cargo)
+})
+
+router.put('/cargos-salarios/:id', async (req, res) => {
+  const cargo = await cargosSalariosRepo.atualizarCargoSalario(req.params.id, req.body)
+  if (!cargo) return res.status(404).json({ erro: 'Cargo não encontrado' })
+  res.json(cargo)
 })
 
 router.get('/helpdesk/conversas', async (req, res) => {
