@@ -160,23 +160,62 @@
     </section>
   </div>
 
-  <div class="dashboard-grid">
-    <section class="card" aria-label="Desempenho por técnico">
-      <h2 class="section-title">Desempenho por Técnico</h2>
-      <div class="tabs-row" style="margin-top:12px">
-        <div class="tabs" id="desempenho-tabs">
-          <button class="tab tab--active" data-tipo="Laboratório">Laboratório</button>
-          <button class="tab" data-tipo="Remoto">Remoto</button>
-          <button class="tab" data-tipo="Presencial">Presencial</button>
+  <div class="dashboard-grid dashboard-grid--categorias">
+    <section class="card card--categorias" aria-label="Dashboards por categoria">
+      <div class="section-header">
+        <h2 class="section-title">Dashboards por Categoria</h2>
+        <span class="live-badge" id="categoria-live" hidden>
+          <span class="live-badge__dot"></span><span id="categoria-live-texto"></span>
+        </span>
+      </div>
+
+      <div class="cat-toolbar">
+        <div class="tabs" id="categoria-tabs">
+          <button class="tab tab--active" data-categoria="remoto">Suporte Remoto</button>
+          <button class="tab" data-categoria="presencial">Presencial</button>
+          <button class="tab" data-categoria="laboratorio">Laboratório</button>
+        </div>
+        <div class="periodo-presets" id="periodo-presets">
+          <button class="periodo-chip" data-preset="hoje">Hoje</button>
+          <button class="periodo-chip" data-preset="7d">7 dias</button>
+          <button class="periodo-chip periodo-chip--active" data-preset="mes">Este mês</button>
+          <button class="periodo-chip" data-preset="tudo">Tudo</button>
+          <button class="periodo-chip" data-preset="custom">Personalizado</button>
         </div>
       </div>
-      <div class="tech-list" id="tech-list"></div>
+
+      <div class="periodo-datas" id="periodo-datas" hidden>
+        <label class="periodo-data">
+          <span>De</span>
+          <input type="date" id="periodo-inicio" class="periodo-input" />
+        </label>
+        <label class="periodo-data">
+          <span>Até</span>
+          <input type="date" id="periodo-fim" class="periodo-input" />
+        </label>
+      </div>
+
+      <div id="categoria-conteudo"></div>
     </section>
 
-    <section class="card" aria-label="Agenda da semana">
-      <h2 class="section-title">Agenda da Semana</h2>
-      <div class="agenda-list" id="agenda-list"></div>
-    </section>
+    <div class="dashboard-stack">
+      <section class="card" aria-label="Desempenho por técnico">
+        <h2 class="section-title">Desempenho por Técnico</h2>
+        <div class="tabs-row" style="margin-top:12px">
+          <div class="tabs" id="desempenho-tabs">
+            <button class="tab tab--active" data-tipo="Laboratório">Laboratório</button>
+            <button class="tab" data-tipo="Remoto">Remoto</button>
+            <button class="tab" data-tipo="Presencial">Presencial</button>
+          </div>
+        </div>
+        <div class="tech-list" id="tech-list"></div>
+      </section>
+
+      <section class="card" aria-label="Agenda da semana">
+        <h2 class="section-title">Agenda da Semana</h2>
+        <div class="agenda-list" id="agenda-list"></div>
+      </section>
+    </div>
   </div>
 
 </main>
@@ -184,6 +223,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="api-shim.js"></script>
+<script src="sheets-config.js"></script>
+<script src="sheets-source.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
