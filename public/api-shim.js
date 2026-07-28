@@ -127,7 +127,7 @@
   // ───────────────────────── técnicos ─────────────────────────
 
   async function listTecnicosInternos() {
-    const { data, error } = await sb().from('tecnicos').select('nome').order('nome')
+    const { data, error } = await sb().from('funcionarios').select('nome').order('nome')
     if (error) throw error
     return data.map(r => r.nome)
   }
