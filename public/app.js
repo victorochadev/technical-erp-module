@@ -394,14 +394,16 @@ function htmlColunas(itens, vazio, cor) {
   if (itens.length === 0) return `<div class="agenda-empty">${esc(vazio)}</div>`
 
   const maior = Math.max(...itens.map(i => i.total))
+  // Só o percentual aparece: a contagem absoluta foi retirada a pedido, para o
+  // gráfico comunicar proporção e não volume. O total continua no title, para
+  // quem passar o mouse.
   return `<div class="col-chart">${itens.map(i => `
     <div class="col-item">
-      <span class="col-item__valor">${i.total}</span>
       <div class="col-item__trilho">
         <div class="col-item__barra" style="height:0;background:${cor || 'var(--grafico-2)'}"
              data-altura="${maior === 0 ? 0 : (i.total / maior) * 100}%"></div>
       </div>
-      <span class="col-item__rotulo" title="${esc(i.rotulo)}">${esc(i.rotulo)}</span>
+      <span class="col-item__rotulo" title="${esc(i.rotulo)} — ${i.total} atendimento${i.total !== 1 ? 's' : ''}">${esc(i.rotulo)}</span>
       <span class="col-item__pct">${i.percentual}%</span>
     </div>
   `).join('')}</div>`

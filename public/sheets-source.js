@@ -175,16 +175,36 @@
     const total = filtrados.length
 
     const contagemModalidade = new Map()
+    // Chave normalizada → { rotulo, total }: sem normalizar, "Guilhotina" e
+    // "guilhotina" virariam duas barras diferentes do mesmo equipamento.
     const contagemEquipamento = new Map()
+    let registrosComEquipamento = 0
 
     for (const r of filtrados) {
       const chave = classificarModalidade(r.modalidade)
       if (chave) contagemModalidade.set(chave, (contagemModalidade.get(chave) || 0) + 1)
 
-      const equip = String(r.equipamento || '').trim()
-      if (equip) {
-        const rotulo = equip.replace(/\s+/g, ' ')
-        contagemEquipamento.set(rotulo, (contagemEquipamento.get(rotulo) || 0) + 1)
+      // Um atendimento pode envolver mais de um equipamento, e a planilha traz
+      // todos na mesma célula ("Guilhotina, Vincadeira, Laminadora"). Sem
+      // separar, cada combinação viraria uma barra própria e o mesmo
+      // equipamento apareceria diluído em várias delas.
+      const equipamentos = String(r.equipamento || '')
+        .split(/[,;]/)
+        .map(e => e.replace(/\s+/g, ' ').trim())
+        .filter(Boolean)
+
+      if (equipamentos.length > 0) registrosComEquipamento++
+
+      const vistosNaLinha = new Set()
+      for (const equip of equipamentos) {
+        const chaveEquip = equip.toLowerCase()
+        // Repetição dentro da mesma célula é um atendimento só.
+        if (vistosNaLinha.has(chaveEquip)) continue
+        vistosNaLinha.add(chaveEquip)
+
+        const atual = contagemEquipamento.get(chaveEquip)
+        if (atual) atual.total += 1
+        else contagemEquipamento.set(chaveEquip, { rotulo: equip, total: 1 })
       }
     }
 
@@ -193,7 +213,12 @@
     // gráfico somaria menos de 100% e pareceria quebrado — cada bloco usa como
     // base o que está de fato preenchido, e o vazio é reportado à parte.
     const comModalidade = [...contagemModalidade.values()].reduce((s, n) => s + n, 0)
-    const comEquipamento = [...contagemEquipamento.values()].reduce((s, n) => s + n, 0)
+    // Duas bases distintas, de propósito: o rodapé "sem equipamento" fala de
+    // REGISTROS, enquanto a fatia de cada barra é sobre o total de MENÇÕES —
+    // um atendimento com três equipamentos conta uma vez no primeiro e três no
+    // segundo. Reutilizar a mesma base faria o rodapé mentir.
+    const comEquipamento = registrosComEquipamento
+    const mencoesEquipamento = [...contagemEquipamento.values()].reduce((s, e) => s + e.total, 0)
     const pctSobre = (n, base) => (base === 0 ? 0 : Math.round((n / base) * 1000) / 10)
 
     const porModalidade = MODALIDADES.map(m => ({
@@ -212,9 +237,11 @@
       })
     }
 
-    const porEquipamento = [...contagemEquipamento.entries()]
-      .map(([rotulo, qtd]) => ({ rotulo, total: qtd, percentual: pctSobre(qtd, comEquipamento) }))
-      .sort((a, b) => b.total - a.total)
+    // Desempate alfabético para a releitura de 60s não ficar trocando a ordem
+    // de barras empatadas.
+    const porEquipamento = [...contagemEquipamento.values()]
+      .map(({ rotulo, total: qtd }) => ({ rotulo, total: qtd, percentual: pctSobre(qtd, mencoesEquipamento) }))
+      .sort((a, b) => b.total - a.total || a.rotulo.localeCompare(b.rotulo, 'pt-BR'))
 
     return {
       total,
