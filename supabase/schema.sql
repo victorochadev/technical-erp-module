@@ -155,6 +155,14 @@ create table if not exists produtos (
   created_at timestamptz not null default now()
 );
 
+create table if not exists wms_unidades (
+  id bigint generated always as identity primary key,
+  produto_id bigint not null references produtos(id) on delete cascade,
+  lote integer not null,
+  numero text not null unique,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists cargos_salarios (
   id bigint generated always as identity primary key,
   nome text not null unique,

@@ -18,10 +18,11 @@ function mapProduto(row) {
   }
 }
 
-async function listProdutos({ busca } = {}) {
+async function listProdutos({ busca, grupo } = {}) {
   const { data, error } = await supabase.from('produtos').select('*').order('id')
   if (error) throw error
-  const produtos = data.map(mapProduto)
+  let produtos = data.map(mapProduto)
+  if (grupo) produtos = produtos.filter(p => p.grupo1 === grupo || p.grupo2 === grupo)
   if (!busca) return produtos
   const alvo = busca.toLowerCase()
   return produtos.filter(p => p.nome.toLowerCase().includes(alvo))

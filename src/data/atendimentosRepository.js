@@ -90,6 +90,34 @@ async function criarAtendimento(dados) {
   return mapAtendimento(data)
 }
 
+async function atualizarAtendimento(id, dados) {
+  const patch = {}
+  if (dados.dtEmissao !== undefined) patch.dt_emissao = dados.dtEmissao
+  if (dados.clienteId !== undefined) patch.cliente_id = dados.clienteId
+  if (dados.cliente !== undefined) patch.cliente_nome = dados.cliente
+  if (dados.defeito !== undefined) patch.defeito = dados.defeito
+  if (dados.laudoTecnico !== undefined) patch.laudo_tecnico = dados.laudoTecnico
+  if (dados.tecnico !== undefined) patch.tecnico_nome = dados.tecnico
+  if (dados.equipamento !== undefined) patch.equipamento = dados.equipamento
+  if (dados.modelo !== undefined) patch.modelo = dados.modelo
+  if (dados.wms !== undefined) patch.wms = dados.wms
+  if (dados.ida !== undefined) patch.ida = dados.ida || null
+  if (dados.volta !== undefined) patch.volta = dados.volta || null
+  if (dados.tipo !== undefined) patch.tipo = dados.tipo
+  if (dados.status !== undefined) patch.status = dados.status
+  if (dados.requisicao !== undefined) patch.requisicao = dados.requisicao
+  if (dados.atendimentoOrigemId !== undefined) patch.atendimento_origem_id = dados.atendimentoOrigemId
+
+  const { data, error } = await supabase
+    .from('atendimentos')
+    .update(patch)
+    .eq('id', Number(id))
+    .select()
+    .maybeSingle()
+  if (error) throw error
+  return data ? mapAtendimento(data) : null
+}
+
 async function listMesesDisponiveis() {
   const { data, error } = await supabase.from('atendimentos').select('dt_emissao')
   if (error) throw error
@@ -102,4 +130,4 @@ async function buscarAtendimentoPorId(id) {
   return data ? mapAtendimento(data) : null
 }
 
-module.exports = { listAtendimentos, listMesesDisponiveis, buscarAtendimentoPorId, criarAtendimento }
+module.exports = { listAtendimentos, listMesesDisponiveis, buscarAtendimentoPorId, criarAtendimento, atualizarAtendimento }

@@ -15,6 +15,7 @@ const wikiGruposRepo = require('../data/wikiGruposRepository')
 const helpdeskRepo = require('../data/helpdeskRepository')
 const funcionariosRepo = require('../data/funcionariosRepository')
 const cargosSalariosRepo = require('../data/cargosSalariosRepository')
+const wmsRepo = require('../data/wmsRepository')
 
 const router = express.Router()
 
@@ -38,6 +39,12 @@ router.post('/atendimentos', async (req, res) => {
 
 router.get('/atendimentos/:id', async (req, res) => {
   const atendimento = await repo.buscarAtendimentoPorId(req.params.id)
+  if (!atendimento) return res.status(404).json({ erro: 'Atendimento não encontrado' })
+  res.json(atendimento)
+})
+
+router.put('/atendimentos/:id', async (req, res) => {
+  const atendimento = await repo.atualizarAtendimento(req.params.id, req.body)
   if (!atendimento) return res.status(404).json({ erro: 'Atendimento não encontrado' })
   res.json(atendimento)
 })
@@ -180,7 +187,7 @@ router.put('/tecnicos-terceirizados/:id', async (req, res) => {
 })
 
 router.get('/produtos', async (req, res) => {
-  res.json(await produtosRepo.listProdutos({ busca: req.query.busca }))
+  res.json(await produtosRepo.listProdutos({ busca: req.query.busca, grupo: req.query.grupo }))
 })
 
 router.post('/produtos', async (req, res) => {
@@ -204,6 +211,18 @@ router.delete('/produtos/:id', async (req, res) => {
   const excluido = await produtosRepo.excluirProduto(req.params.id)
   if (!excluido) return res.status(404).json({ erro: 'Produto não encontrado' })
   res.status(204).end()
+})
+
+router.get('/wms', async (req, res) => {
+  const unidades = req.query.produtoId
+    ? await wmsRepo.listWmsPorProduto(req.query.produtoId)
+    : await wmsRepo.listWmsTodos()
+  res.json(unidades)
+})
+
+router.post('/wms', async (req, res) => {
+  const unidades = await wmsRepo.registrarWms(Number(req.body.produtoId), Number(req.body.quantidade))
+  res.status(201).json(unidades)
 })
 
 router.get('/grupos-produto', async (req, res) => {
