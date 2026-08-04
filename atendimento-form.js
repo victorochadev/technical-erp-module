@@ -16,6 +16,7 @@ const EMPRESA = {
 const state = {
   cliente: null,
   numero: null,
+  atendimentoId: null,
   tipo: 'Remoto',
   anexos: [],
   tecnicosCache: null,
@@ -103,6 +104,149 @@ function createAutocomplete({ inputEl, dropdownEl, fetchItems, renderItem, onSel
   return { close }
 }
 
+// ─── Combobox pesquisável (Equipamento = Grupo de Produtos / Modelo = Produto) ─
+
+function criarComboSelect(container, { onChange } = {}) {
+  let opcoes = []
+  let itensFiltrados = []
+  let valorSelecionado = ''
+  let aberto = false
+
+  container.innerHTML = `
+    <div class="combo-select__box" tabindex="0">
+      <span class="combo-select__value combo-select__value--placeholder">Selecione...</span>
+      <svg class="combo-select__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="combo-select__panel">
+      <input type="text" class="combo-select__search" placeholder="Buscar..." />
+      <div class="combo-select__list"></div>
+    </div>
+  `
+
+  const box = container.querySelector('.combo-select__box')
+  const valueEl = container.querySelector('.combo-select__value')
+  const searchInput = container.querySelector('.combo-select__search')
+  const listEl = container.querySelector('.combo-select__list')
+
+  function renderLista(filtro) {
+    const alvo = (filtro || '').toLowerCase()
+    itensFiltrados = opcoes.filter(o => o.toLowerCase().includes(alvo))
+    if (itensFiltrados.length === 0) {
+      listEl.innerHTML = '<div class="combo-select__empty">Nenhuma opção cadastrada</div>'
+      return
+    }
+    listEl.innerHTML = itensFiltrados.map((o, i) => `
+      <div class="combo-select__item${o === valorSelecionado ? ' combo-select__item--selected' : ''}" data-index="${i}">${o}</div>
+    `).join('')
+  }
+
+  function atualizarValue() {
+    if (valorSelecionado) {
+      valueEl.textContent = valorSelecionado
+      valueEl.classList.remove('combo-select__value--placeholder')
+    } else {
+      valueEl.textContent = 'Selecione...'
+      valueEl.classList.add('combo-select__value--placeholder')
+    }
+  }
+
+  function abrir() {
+    aberto = true
+    container.classList.add('combo-select--open')
+    searchInput.value = ''
+    renderLista('')
+    searchInput.focus()
+  }
+
+  function fechar() {
+    aberto = false
+    container.classList.remove('combo-select--open')
+  }
+
+  box.addEventListener('click', () => { aberto ? fechar() : abrir() })
+  searchInput.addEventListener('input', () => renderLista(searchInput.value))
+  searchInput.addEventListener('keydown', e => { if (e.key === 'Escape') fechar() })
+  listEl.addEventListener('click', e => {
+    const item = e.target.closest('.combo-select__item')
+    if (!item) return
+    valorSelecionado = itensFiltrados[Number(item.dataset.index)]
+    atualizarValue()
+    fechar()
+    if (onChange) onChange(valorSelecionado)
+  })
+  document.addEventListener('click', e => {
+    if (!container.contains(e.target)) fechar()
+  })
+
+  return {
+    setOpcoes(lista) { opcoes = lista },
+    setValor(v) { valorSelecionado = v || ''; atualizarValue() },
+    getValor() { return valorSelecionado },
+  }
+}
+
+let comboEquipamento = null
+let comboModelo = null
+let produtoIdPorNome = {}
+
+function preencherOpcoesWms(numeros) {
+  const options = ['<option value="">Selecione um número WMS</option>']
+    .concat(numeros.map(n => `<option value="${n}">${n}</option>`))
+    .join('')
+  document.getElementById('select-wms-1').innerHTML = options
+  document.getElementById('select-wms-2').innerHTML = options
+}
+
+async function carregarWmsDoProduto(produtoId) {
+  if (!produtoId) {
+    document.getElementById('select-wms-1').innerHTML = '<option value="">Selecione um produto primeiro</option>'
+    document.getElementById('select-wms-2').innerHTML = '<option value="">Selecione um produto primeiro</option>'
+    return
+  }
+  const unidades = await fetchJson(`/api/wms?produtoId=${produtoId}`)
+  preencherOpcoesWms(unidades.map(u => u.numero))
+}
+
+async function carregarProdutosDoGrupo(grupoNome) {
+  if (!grupoNome) {
+    comboModelo.setOpcoes([])
+    comboModelo.setValor('')
+    produtoIdPorNome = {}
+    await carregarWmsDoProduto(null)
+    return
+  }
+  const produtos = await fetchJson(`/api/produtos?grupo=${encodeURIComponent(grupoNome)}`)
+  produtoIdPorNome = Object.fromEntries(produtos.map(p => [p.nome, p.id]))
+  comboModelo.setOpcoes(produtos.map(p => p.nome))
+}
+
+async function selecionarEquipamentoModeloWms(grupoNome, produtoNome, wmsValores) {
+  comboEquipamento.setValor(grupoNome || '')
+  await carregarProdutosDoGrupo(grupoNome || '')
+  comboModelo.setValor(produtoNome || '')
+  await carregarWmsDoProduto(produtoIdPorNome[produtoNome])
+  const [v1, v2] = wmsValores || []
+  if (v1) document.getElementById('select-wms-1').value = v1
+  if (v2) document.getElementById('select-wms-2').value = v2
+}
+
+async function setupCombosEquipamentoModelo() {
+  comboEquipamento = criarComboSelect(document.getElementById('combo-equipamento'), {
+    onChange: async grupoNome => {
+      await carregarProdutosDoGrupo(grupoNome)
+      await carregarWmsDoProduto(null)
+    },
+  })
+  comboModelo = criarComboSelect(document.getElementById('combo-modelo'), {
+    onChange: async produtoNome => {
+      await carregarWmsDoProduto(produtoIdPorNome[produtoNome])
+    },
+  })
+
+  const grupos = await fetchJson('/api/grupos-produto')
+  comboEquipamento.setOpcoes(grupos.map(g => g.nome))
+}
+
 // ─── View: busca de cliente ──────────────────────────────────────────────────
 
 function renderClienteInfo(cliente) {
@@ -149,6 +293,7 @@ async function abrirEmModoEdicao(atendimentoId) {
 
   state.cliente = cliente
   state.numero = atendimento.numero
+  state.atendimentoId = atendimento.id
   state.dataHoraCriacao = new Date(atendimento.ida || atendimento.dtEmissao)
   state.modoEdicao = true
 
@@ -167,9 +312,7 @@ async function abrirEmModoEdicao(atendimentoId) {
   document.getElementById('input-volta').value = atendimento.volta || ''
   document.getElementById('input-tecnico').value = atendimento.tecnico || ''
   setTecnicoTipoUI(await inferirTecnicoTipo(atendimento.tecnico))
-  document.getElementById('input-equipamento').value = atendimento.equipamento || ''
-  document.getElementById('input-modelo').value = atendimento.modelo || ''
-  preencherWms(atendimento.wms || [])
+  await selecionarEquipamentoModeloWms(atendimento.equipamento, atendimento.modelo, atendimento.wms || [])
   document.getElementById('input-defeito').value = atendimento.defeito || ''
   document.getElementById('input-laudo').value = atendimento.laudoTecnico || ''
 
@@ -197,6 +340,7 @@ function backToBusca() {
 function resetForm() {
   state.cliente = null
   state.numero = null
+  state.atendimentoId = null
   state.tipo = 'Remoto'
   state.anexos = []
   state.modoEdicao = false
@@ -204,13 +348,14 @@ function resetForm() {
   state.requisicaoNumero = null
   setTecnicoTipoUI('bannerjet')
   document.getElementById('input-tecnico').value = ''
-  document.getElementById('input-equipamento').value = ''
-  document.getElementById('input-modelo').value = ''
+  comboEquipamento.setValor('')
+  comboModelo.setOpcoes([])
+  comboModelo.setValor('')
   document.getElementById('input-defeito').value = ''
   document.getElementById('input-laudo').value = ''
   document.getElementById('input-atendimento-vinculado').value = ''
-  document.getElementById('select-wms-1').innerHTML = '<option>Selecione um modelo primeiro</option>'
-  document.getElementById('select-wms-2').innerHTML = '<option>Selecione um modelo primeiro</option>'
+  document.getElementById('select-wms-1').innerHTML = '<option value="">Selecione um produto primeiro</option>'
+  document.getElementById('select-wms-2').innerHTML = '<option value="">Selecione um produto primeiro</option>'
   document.getElementById('anexos-grid').innerHTML = ''
   setSlaInicial('padrao')
   setTipo('Remoto')
@@ -326,7 +471,7 @@ function setupAutocompleteVinculo() {
   })
 }
 
-function aplicarVinculo(atendimento) {
+async function aplicarVinculo(atendimento) {
   state.atendimentoVinculado = atendimento
 
   const resumo = `Resumo do Atendimento Remoto nº ${atendimento.numero} (${atendimento.dtEmissao.split('-').reverse().join('/')}) — Técnico: ${atendimento.tecnico}\n` +
@@ -334,19 +479,9 @@ function aplicarVinculo(atendimento) {
     (atendimento.laudoTecnico ? `\nLaudo técnico: ${atendimento.laudoTecnico}` : '')
   document.getElementById('input-defeito').value = resumo
 
-  const equipamentoInput = document.getElementById('input-equipamento')
-  const modeloInput = document.getElementById('input-modelo')
-  if (!equipamentoInput.value) equipamentoInput.value = atendimento.equipamento || ''
-  if (!modeloInput.value) modeloInput.value = atendimento.modelo || ''
-  if (atendimento.wms && atendimento.wms.length) preencherWms(atendimento.wms)
-}
-
-// ─── WMS ligado ao modelo selecionado ─────────────────────────────────────────
-
-function preencherWms(wmsList) {
-  const options = wmsList.map(w => `<option>${w}</option>`).join('')
-  document.getElementById('select-wms-1').innerHTML = options
-  document.getElementById('select-wms-2').innerHTML = options
+  if (!comboEquipamento.getValor() && !comboModelo.getValor()) {
+    await selecionarEquipamentoModeloWms(atendimento.equipamento, atendimento.modelo, atendimento.wms || [])
+  }
 }
 
 // ─── Anexos (fotos/vídeos) ─────────────────────────────────────────────────────
@@ -446,33 +581,6 @@ async function setupAutocompleteTecnico() {
   })
 }
 
-function setupAutocompleteEquipamento() {
-  createAutocomplete({
-    inputEl: document.getElementById('input-equipamento'),
-    dropdownEl: document.getElementById('dropdown-equipamento'),
-    minChars: 1,
-    fetchItems: query => fetchJson(`/api/catalogo/equipamentos?q=${encodeURIComponent(query)}`),
-    renderItem: nome => `<div class="autocomplete-item__title">${nome}</div>`,
-    onSelect: nome => { document.getElementById('input-equipamento').value = nome },
-  })
-}
-
-function setupAutocompleteModelo() {
-  createAutocomplete({
-    inputEl: document.getElementById('input-modelo'),
-    dropdownEl: document.getElementById('dropdown-modelo'),
-    minChars: 1,
-    fetchItems: query => fetchJson(`/api/catalogo/modelos?q=${encodeURIComponent(query)}`),
-    renderItem: m => `<div class="autocomplete-item__title">${m.modelo}</div><div class="autocomplete-item__sub">${m.equipamento}</div>`,
-    onSelect: m => {
-      document.getElementById('input-modelo').value = m.modelo
-      const equipamentoInput = document.getElementById('input-equipamento')
-      if (!equipamentoInput.value) equipamentoInput.value = m.equipamento
-      preencherWms(m.wms)
-    },
-  })
-}
-
 // ─── Init ────────────────────────────────────────────────────────────────────
 
 function setupTheme() {
@@ -507,9 +615,9 @@ function setupBotoes() {
       ida: document.getElementById('input-ida').value,
       volta: document.getElementById('input-volta').value,
       tecnico: document.getElementById('input-tecnico').value || USUARIO_LOGADO,
-      equipamento: document.getElementById('input-equipamento').value,
-      marca: document.getElementById('input-modelo').value.split(' ')[0] || '',
-      modelo: document.getElementById('input-modelo').value.split(' ').slice(1).join(' ') || '0',
+      equipamento: comboEquipamento.getValor(),
+      marca: comboModelo.getValor().split(' ')[0] || '',
+      modelo: comboModelo.getValor().split(' ').slice(1).join(' ') || '0',
       defeito: document.getElementById('input-defeito').value,
       laudoTecnico: document.getElementById('input-laudo').value,
       requisicao: state.tipo === 'Laboratório' ? state.requisicaoNumero : null,
@@ -534,28 +642,45 @@ function setupBotoes() {
     }
 
     const payload = {
-      numero: state.numero,
-      cliente: state.cliente,
+      cliente: state.cliente.nomeFantasia,
+      clienteId: state.cliente.id,
       tipo: state.tipo,
       ida: document.getElementById('input-ida').value,
       volta: document.getElementById('input-volta').value,
       tecnico: document.getElementById('input-tecnico').value,
-      equipamento: document.getElementById('input-equipamento').value,
-      modelo: document.getElementById('input-modelo').value,
-      wms1: document.getElementById('select-wms-1').value,
-      wms2: document.getElementById('select-wms-2').value,
+      equipamento: comboEquipamento.getValor(),
+      modelo: comboModelo.getValor(),
+      wms: [
+        valorWmsSelecionado(document.getElementById('select-wms-1')),
+        valorWmsSelecionado(document.getElementById('select-wms-2')),
+      ].filter(Boolean),
       defeito: document.getElementById('input-defeito').value,
       laudoTecnico: document.getElementById('input-laudo').value,
-      anexos: state.anexos.map(a => a.nome),
     }
-    console.log('Payload do atendimento (protótipo):', payload)
-    showToast(`Atendimento nº ${state.numero} salvo (protótipo)`)
+
+    try {
+      const atendimento = await fetch(
+        state.modoEdicao ? `/api/atendimentos/${state.atendimentoId}` : '/api/atendimentos',
+        {
+          method: state.modoEdicao ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        },
+      ).then(r => r.json())
+
+      state.modoEdicao = true
+      state.atendimentoId = atendimento.id
+      state.numero = atendimento.numero
+      document.getElementById('numero-atendimento').textContent = state.numero
+      showToast(`Atendimento nº ${atendimento.numero} salvo.`)
+    } catch (err) {
+      showToast('Não foi possível salvar o atendimento.')
+    }
   })
 }
 
 function valorWmsSelecionado(select) {
-  const v = select.value
-  return v && v !== 'Selecione um modelo primeiro' ? v : null
+  return select.value || null
 }
 
 // Diferente do restante do protótipo (Salvar apenas loga e mostra um toast),
@@ -569,8 +694,8 @@ async function salvarAtendimentoLaboratorio() {
   ].filter(Boolean)
 
   const tecnico = document.getElementById('input-tecnico').value
-  const equipamento = document.getElementById('input-equipamento').value
-  const modelo = document.getElementById('input-modelo').value
+  const equipamento = comboEquipamento.getValor()
+  const modelo = comboModelo.getValor()
   const defeito = document.getElementById('input-defeito').value
   const requisicao = state.requisicaoNumero || ''
   const origemId = state.atendimentoVinculado ? state.atendimentoVinculado.id : null
@@ -605,6 +730,7 @@ async function salvarAtendimentoLaboratorio() {
     })
 
     state.modoEdicao = true
+    state.atendimentoId = atendimentoCriado.id
     state.numero = atendimentoCriado.numero
     document.getElementById('numero-atendimento').textContent = state.numero
     atualizarVisibilidadeBlocos()
@@ -614,7 +740,7 @@ async function salvarAtendimentoLaboratorio() {
   }
 }
 
-function init() {
+async function init() {
   document.getElementById('usuario-logado-nome').textContent = USUARIO_LOGADO
   document.getElementById('usuario-logado-nome-2').textContent = USUARIO_LOGADO
   document.getElementById('input-data-emissao').value = new Date().toISOString().split('T')[0]
@@ -624,8 +750,7 @@ function init() {
   setupDropzone()
   setupAutocompleteCliente()
   setupAutocompleteTecnico()
-  setupAutocompleteEquipamento()
-  setupAutocompleteModelo()
+  await setupCombosEquipamentoModelo()
   setupAutocompleteVinculo()
 
   const params = new URLSearchParams(location.search)

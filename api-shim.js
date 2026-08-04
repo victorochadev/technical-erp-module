@@ -298,6 +298,29 @@
     return mapAtendimento(data)
   }
 
+  async function atualizarAtendimento(id, dados) {
+    const patch = {}
+    if (dados.dtEmissao !== undefined) patch.dt_emissao = dados.dtEmissao
+    if (dados.clienteId !== undefined) patch.cliente_id = dados.clienteId
+    if (dados.cliente !== undefined) patch.cliente_nome = dados.cliente
+    if (dados.defeito !== undefined) patch.defeito = dados.defeito
+    if (dados.laudoTecnico !== undefined) patch.laudo_tecnico = dados.laudoTecnico
+    if (dados.tecnico !== undefined) patch.tecnico_nome = dados.tecnico
+    if (dados.equipamento !== undefined) patch.equipamento = dados.equipamento
+    if (dados.modelo !== undefined) patch.modelo = dados.modelo
+    if (dados.wms !== undefined) patch.wms = dados.wms
+    if (dados.ida !== undefined) patch.ida = dados.ida || null
+    if (dados.volta !== undefined) patch.volta = dados.volta || null
+    if (dados.tipo !== undefined) patch.tipo = dados.tipo
+    if (dados.status !== undefined) patch.status = dados.status
+    if (dados.requisicao !== undefined) patch.requisicao = dados.requisicao
+    if (dados.atendimentoOrigemId !== undefined) patch.atendimento_origem_id = dados.atendimentoOrigemId
+
+    const { data, error } = await sb().from('atendimentos').update(patch).eq('id', Number(id)).select().maybeSingle()
+    if (error) throw error
+    return data ? mapAtendimento(data) : null
+  }
+
   async function listMesesDisponiveis() {
     const { data, error } = await sb().from('atendimentos').select('dt_emissao')
     if (error) throw error
@@ -805,10 +828,11 @@
     }
   }
 
-  async function listProdutos({ busca } = {}) {
+  async function listProdutos({ busca, grupo } = {}) {
     const { data, error } = await sb().from('produtos').select('*').order('id')
     if (error) throw error
-    const produtos = data.map(mapProduto)
+    let produtos = data.map(mapProduto)
+    if (grupo) produtos = produtos.filter(p => p.grupo1 === grupo || p.grupo2 === grupo)
     if (!busca) return produtos
     const alvo = busca.toLowerCase()
     return produtos.filter(p => p.nome.toLowerCase().includes(alvo))
@@ -870,6 +894,71 @@
       .maybeSingle()
     if (error) throw error
     return Boolean(data)
+  }
+
+  // ───────────────────────── wms (unidades registradas por produto) ─────────────────────────
+
+  function mapWmsUnidade(row) {
+    return {
+      id: row.id,
+      produtoId: row.produto_id,
+      lote: row.lote,
+      numero: row.numero,
+      produtoNome: row.produtos ? row.produtos.nome : undefined,
+    }
+  }
+
+  function gerarNumeroWms(lote) {
+    const prefixo = `${lote}0${lote}`
+    const aleatorio = String(Math.floor(Math.random() * 100000)).padStart(5, '0')
+    return `${prefixo}${aleatorio}`
+  }
+
+  async function proximoLoteWms(produtoId) {
+    const { data, error } = await sb().from('wms_unidades').select('lote').eq('produto_id', produtoId)
+    if (error) throw error
+    return data.reduce((max, r) => Math.max(max, r.lote), 0) + 1
+  }
+
+  async function listWmsPorProduto(produtoId) {
+    const { data, error } = await sb()
+      .from('wms_unidades')
+      .select('*')
+      .eq('produto_id', Number(produtoId))
+      .order('lote')
+      .order('numero')
+    if (error) throw error
+    return data.map(mapWmsUnidade)
+  }
+
+  async function listWmsTodos() {
+    const { data, error } = await sb()
+      .from('wms_unidades')
+      .select('*, produtos(nome)')
+      .order('produto_id')
+      .order('lote')
+    if (error) throw error
+    return data.map(mapWmsUnidade)
+  }
+
+  async function registrarWms(produtoId, quantidade) {
+    const lote = await proximoLoteWms(produtoId)
+
+    const { data: existentesData, error: existentesError } = await sb().from('wms_unidades').select('numero')
+    if (existentesError) throw existentesError
+    const numerosExistentes = new Set(existentesData.map(r => r.numero))
+
+    const novos = []
+    for (let i = 0; i < quantidade; i++) {
+      let numero
+      do { numero = gerarNumeroWms(lote) } while (numerosExistentes.has(numero))
+      numerosExistentes.add(numero)
+      novos.push({ produto_id: produtoId, lote, numero })
+    }
+
+    const { data, error } = await sb().from('wms_unidades').insert(novos).select()
+    if (error) throw error
+    return data.map(mapWmsUnidade)
   }
 
   // ───────────────────────── grupos de produto ─────────────────────────
@@ -1117,9 +1206,15 @@
         if (method === 'GET') return { status: 200, body: await listAtendimentos(Object.fromEntries(searchParams.entries())) }
         if (method === 'POST') return { status: 201, body: await criarAtendimento(body) }
       }
-      if (segments.length === 2 && method === 'GET') {
-        const a = await buscarAtendimentoPorId(segments[1])
-        return a ? { status: 200, body: a } : { status: 404, body: { erro: 'Atendimento não encontrado' } }
+      if (segments.length === 2) {
+        if (method === 'GET') {
+          const a = await buscarAtendimentoPorId(segments[1])
+          return a ? { status: 200, body: a } : { status: 404, body: { erro: 'Atendimento não encontrado' } }
+        }
+        if (method === 'PUT') {
+          const a = await atualizarAtendimento(segments[1], body)
+          return a ? { status: 200, body: a } : { status: 404, body: { erro: 'Atendimento não encontrado' } }
+        }
       }
     }
 
@@ -1212,7 +1307,7 @@
 
     if (segments[0] === 'produtos') {
       if (segments.length === 1) {
-        if (method === 'GET') return { status: 200, body: await listProdutos({ busca: searchParams.get('busca') }) }
+        if (method === 'GET') return { status: 200, body: await listProdutos({ busca: searchParams.get('busca'), grupo: searchParams.get('grupo') }) }
         if (method === 'POST') return { status: 201, body: await criarProduto(body) }
       }
       if (segments.length === 2) {
@@ -1228,6 +1323,16 @@
           const excluido = await excluirProduto(segments[1])
           return excluido ? { status: 204, body: null } : { status: 404, body: { erro: 'Produto não encontrado' } }
         }
+      }
+    }
+
+    if (segments[0] === 'wms') {
+      if (segments.length === 1) {
+        if (method === 'GET') {
+          const produtoId = searchParams.get('produtoId')
+          return { status: 200, body: produtoId ? await listWmsPorProduto(produtoId) : await listWmsTodos() }
+        }
+        if (method === 'POST') return { status: 201, body: await registrarWms(Number(body.produtoId), Number(body.quantidade)) }
       }
     }
 
