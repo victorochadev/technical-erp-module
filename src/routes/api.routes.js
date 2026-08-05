@@ -13,6 +13,9 @@ const gruposProdutoRepo = require('../data/gruposProdutoRepository')
 const wikiRepo = require('../data/wikiRepository')
 const wikiGruposRepo = require('../data/wikiGruposRepository')
 const helpdeskRepo = require('../data/helpdeskRepository')
+const funcionariosRepo = require('../data/funcionariosRepository')
+const cargosSalariosRepo = require('../data/cargosSalariosRepository')
+const wmsRepo = require('../data/wmsRepository')
 
 const router = express.Router()
 
@@ -36,6 +39,12 @@ router.post('/atendimentos', async (req, res) => {
 
 router.get('/atendimentos/:id', async (req, res) => {
   const atendimento = await repo.buscarAtendimentoPorId(req.params.id)
+  if (!atendimento) return res.status(404).json({ erro: 'Atendimento não encontrado' })
+  res.json(atendimento)
+})
+
+router.put('/atendimentos/:id', async (req, res) => {
+  const atendimento = await repo.atualizarAtendimento(req.params.id, req.body)
   if (!atendimento) return res.status(404).json({ erro: 'Atendimento não encontrado' })
   res.json(atendimento)
 })
@@ -71,6 +80,12 @@ router.put('/clientes/:id', async (req, res) => {
   const cliente = await clientesRepo.atualizarCliente(req.params.id, req.body)
   if (!cliente) return res.status(404).json({ erro: 'Cliente não encontrado' })
   res.json(cliente)
+})
+
+router.delete('/clientes/:id', async (req, res) => {
+  const excluido = await clientesRepo.excluirCliente(req.params.id)
+  if (!excluido) return res.status(404).json({ erro: 'Cliente não encontrado' })
+  res.status(204).end()
 })
 
 router.get('/catalogo/equipamentos', async (req, res) => {
@@ -116,12 +131,6 @@ router.post('/laboratorio/:id/comentarios', async (req, res) => {
   const card = await laboratorioRepo.adicionarComentario(req.params.id, req.body.texto)
   if (!card) return res.status(404).json({ erro: 'Cartão não encontrado' })
   res.status(201).json(card)
-})
-
-router.post('/laboratorio/colunas', async (req, res) => {
-  const coluna = await laboratorioRepo.criarColuna(req.body.nome)
-  if (!coluna) return res.status(400).json({ erro: 'Nome inválido' })
-  res.status(201).json(coluna)
 })
 
 router.delete('/laboratorio/colunas/:id', async (req, res) => {
@@ -178,7 +187,7 @@ router.put('/tecnicos-terceirizados/:id', async (req, res) => {
 })
 
 router.get('/produtos', async (req, res) => {
-  res.json(await produtosRepo.listProdutos({ busca: req.query.busca }))
+  res.json(await produtosRepo.listProdutos({ busca: req.query.busca, grupo: req.query.grupo }))
 })
 
 router.post('/produtos', async (req, res) => {
@@ -196,6 +205,24 @@ router.put('/produtos/:id', async (req, res) => {
   const produto = await produtosRepo.atualizarProduto(req.params.id, req.body)
   if (!produto) return res.status(404).json({ erro: 'Produto não encontrado' })
   res.json(produto)
+})
+
+router.delete('/produtos/:id', async (req, res) => {
+  const excluido = await produtosRepo.excluirProduto(req.params.id)
+  if (!excluido) return res.status(404).json({ erro: 'Produto não encontrado' })
+  res.status(204).end()
+})
+
+router.get('/wms', async (req, res) => {
+  const unidades = req.query.produtoId
+    ? await wmsRepo.listWmsPorProduto(req.query.produtoId)
+    : await wmsRepo.listWmsTodos()
+  res.json(unidades)
+})
+
+router.post('/wms', async (req, res) => {
+  const unidades = await wmsRepo.registrarWms(Number(req.body.produtoId), Number(req.body.quantidade))
+  res.status(201).json(unidades)
 })
 
 router.get('/grupos-produto', async (req, res) => {
@@ -235,6 +262,48 @@ router.get('/wiki-grupos', async (req, res) => {
 router.post('/wiki-grupos', async (req, res) => {
   const grupo = await wikiGruposRepo.criarWikiGrupo(req.body)
   res.status(201).json(grupo)
+})
+
+router.get('/funcionarios', async (req, res) => {
+  res.json(await funcionariosRepo.listFuncionarios({ busca: req.query.busca }))
+})
+
+router.post('/funcionarios', async (req, res) => {
+  const funcionario = await funcionariosRepo.criarFuncionario(req.body)
+  res.status(201).json(funcionario)
+})
+
+router.get('/funcionarios/:id', async (req, res) => {
+  const funcionario = await funcionariosRepo.buscarFuncionarioPorId(req.params.id)
+  if (!funcionario) return res.status(404).json({ erro: 'Funcionário não encontrado' })
+  res.json(funcionario)
+})
+
+router.put('/funcionarios/:id', async (req, res) => {
+  const funcionario = await funcionariosRepo.atualizarFuncionario(req.params.id, req.body)
+  if (!funcionario) return res.status(404).json({ erro: 'Funcionário não encontrado' })
+  res.json(funcionario)
+})
+
+router.get('/cargos-salarios', async (req, res) => {
+  res.json(await cargosSalariosRepo.listCargosSalarios())
+})
+
+router.post('/cargos-salarios', async (req, res) => {
+  const cargo = await cargosSalariosRepo.criarCargoSalario(req.body)
+  res.status(201).json(cargo)
+})
+
+router.get('/cargos-salarios/:id', async (req, res) => {
+  const cargo = await cargosSalariosRepo.buscarCargoSalarioPorId(req.params.id)
+  if (!cargo) return res.status(404).json({ erro: 'Cargo não encontrado' })
+  res.json(cargo)
+})
+
+router.put('/cargos-salarios/:id', async (req, res) => {
+  const cargo = await cargosSalariosRepo.atualizarCargoSalario(req.params.id, req.body)
+  if (!cargo) return res.status(404).json({ erro: 'Cargo não encontrado' })
+  res.json(cargo)
 })
 
 router.get('/helpdesk/conversas', async (req, res) => {

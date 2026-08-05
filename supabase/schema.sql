@@ -155,6 +155,30 @@ create table if not exists produtos (
   created_at timestamptz not null default now()
 );
 
+create table if not exists wms_unidades (
+  id bigint generated always as identity primary key,
+  produto_id bigint not null references produtos(id) on delete cascade,
+  lote integer not null,
+  numero text not null unique,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists cargos_salarios (
+  id bigint generated always as identity primary key,
+  nome text not null unique,
+  salario_base numeric(12, 2) not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists funcionarios (
+  id bigint generated always as identity primary key,
+  nome text not null,
+  cargo text,
+  telefone text,
+  email text,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists grupos_produto (
   id bigint generated always as identity primary key,
   nome text not null unique,
@@ -210,7 +234,8 @@ begin
       'catalogo_equipamentos', 'catalogo_modelos', 'catalogo_wms',
       'atendimentos', 'instalacoes', 'laboratorio_colunas', 'laboratorio_cards',
       'requisicoes', 'produtos', 'grupos_produto', 'wiki_artigos', 'wiki_grupos',
-      'helpdesk_conversas', 'helpdesk_mensagens'
+      'helpdesk_conversas', 'helpdesk_mensagens', 'jet_ia_historico', 'jet_ia_erros',
+      'cargos_salarios', 'funcionarios', 'wms_unidades'
     ])
   loop
     execute format('alter table %I enable row level security;', t);
@@ -336,16 +361,19 @@ join (values
   ('Transtherm TT-4060', '17058345030 - PRENSA TERMICA TRANSTHERM TT-4060 - WMS - Compra: 30/05/2026')
 ) as w(modelo, descricao) on cm.nome = w.modelo;
 
+-- Colunas fixas do quadro do Laboratório — a UI não permite mais criar colunas
+-- novas, então esta é a lista definitiva (ver public/laboratorio.js).
 insert into laboratorio_colunas (id, nome, cor, ordem) values
-('entrada', 'Entrada', '#64748b', 1),
-('fila', 'Fila', '#3b82f6', 2),
+('entrada', 'Entrada', '#3b82f6', 1),
+('diagnostico', 'Diagnóstico', '#06b6d4', 2),
 ('orcamento', 'Orçamento', '#8b5cf6', 3),
 ('manutencao', 'Manutenção', '#f59e0b', 4),
-('testes', 'Testes', '#06b6d4', 5),
-('finalizado', 'Finalizado', '#22c55e', 6),
-('aguardando-coleta', 'Aguardando Coleta', '#eab308', 7),
-('coletado', 'Coletado', '#ec4899', 8)
-on conflict (id) do nothing;
+('finalizado', 'Finalizado', '#22c55e', 5),
+('aguardando-coleta', 'Aguardando Coleta', '#eab308', 6),
+('coletado', 'Coletado', '#ec4899', 7)
+on conflict (id) do update set nome = excluded.nome, cor = excluded.cor, ordem = excluded.ordem;
+
+delete from laboratorio_colunas where id not in ('entrada', 'diagnostico', 'orcamento', 'manutencao', 'finalizado', 'aguardando-coleta', 'coletado');
 
 insert into requisicoes (numero, dt_emissao, funcionario, itens, valor_total, atendimento_vinculado_id, observacao) values
 ('6959', '2026-07-10', 'Ricardo Domingos Silva', '[{"descricao":"Motor de Passo Eixo Y","qtd":1,"valorUnit":420,"valorTotal":420},{"descricao":"Correia de Transmissão Eixo X","qtd":6.48,"valorUnit":145,"valorTotal":940}]', 1360, null, ''),
@@ -360,13 +388,8 @@ insert into requisicoes (numero, dt_emissao, funcionario, itens, valor_total, at
 ('6968', '2026-07-14', 'Felipe da Silva Wosgrau Pinheiro', '[{"descricao":"Fonte de Alimentação 24V","qtd":1.42,"valorUnit":380,"valorTotal":540}]', 540, null, '')
 on conflict (numero) do nothing;
 
-insert into wiki_grupos (nome) values
-('G1'),
-('G2'),
-('V/D/SV'),
-('C'),
-('Laminadora')
-on conflict (nome) do nothing;
+-- wiki_grupos / wiki_artigos ficam sem seed — a base de conhecimento (JET-IA)
+-- é populada manualmente pela própria interface.
 
 do $$
 declare

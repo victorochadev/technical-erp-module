@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Instalações</title>
+<title>Novo Cargo — Cadastro</title>
 <link rel="stylesheet" href="styles.css" />
-<link rel="stylesheet" href="instalacoes.css" />
+<link rel="stylesheet" href="novo-cargo-salario.css" />
 <script>
   ;(function() {
     if (sessionStorage.getItem('at-auth') !== 'ok' && localStorage.getItem('at-auth') !== 'ok') { window.location.replace('login.html'); }
@@ -23,7 +23,7 @@
   <div class="sidebar__divider"></div>
 
   <div class="sidebar__item">
-    <a href="clientes.html" class="sidebar__link" title="Cadastro">
+    <a href="clientes.html" class="sidebar__link sidebar__link--active" title="Cadastro">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10.5" r="2"/><path d="M5 17c.5-2 2-3 3.5-3s3 1 3.5 3"/><line x1="14" y1="9" x2="19" y2="9"/><line x1="14" y1="12" x2="19" y2="12"/><line x1="14" y1="15" x2="17" y2="15"/></svg>
     </a>
     <div class="sidebar__flyout">
@@ -52,7 +52,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="3"/><path d="M2 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M17 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
         Funcionários
       </a>
-      <a href="cargos-salarios.html" class="sidebar__flyout-item">
+      <a href="cargos-salarios.html" class="sidebar__flyout-item sidebar__flyout-item--active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 6v12"/><path d="M15.5 9.5c0-1.5-1.5-2.5-3.5-2.5s-3.5 1-3.5 2.5c0 1.5 1.5 2 3.5 2.5s3.5 1 3.5 2.5-1.5 2.5-3.5 2.5-3.5-1-3.5-2.5"/></svg>
         Cargos e Salários
       </a>
@@ -71,7 +71,7 @@
     </div>
   </div>
   <div class="sidebar__item">
-    <a href="atendimentos.html" class="sidebar__link sidebar__link--active" title="Área Técnica">
+    <a href="atendimentos.html" class="sidebar__link" title="Área Técnica">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
     </a>
     <div class="sidebar__flyout">
@@ -80,7 +80,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         Atendimentos
       </a>
-      <a href="instalacoes.html" class="sidebar__flyout-item sidebar__flyout-item--active">
+      <a href="instalacoes.html" class="sidebar__flyout-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><line x1="2" y1="13" x2="22" y2="13"/></svg>
         Instalações
       </a>
@@ -111,12 +111,10 @@
 <header class="header">
   <div class="header-inner">
     <div class="header-brand">
-      <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><line x1="2" y1="13" x2="22" y2="13"/>
-      </svg>
+      <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 6v12"/><path d="M15.5 9.5c0-1.5-1.5-2.5-3.5-2.5s-3.5 1-3.5 2.5c0 1.5 1.5 2 3.5 2.5s3.5 1 3.5 2.5-1.5 2.5-3.5 2.5-3.5-1-3.5-2.5"/></svg>
       <div class="header-title-group">
-        <h1 class="header-title">Instalações</h1>
-        <p class="header-subtitle">Home / Instalações</p>
+        <h1 class="header-title" id="page-title">Novo Cargo</h1>
+        <p class="header-subtitle" id="breadcrumb">Home / Cadastro / Cargos e Salários / Novo</p>
       </div>
     </div>
     <div class="header-meta">
@@ -127,46 +125,27 @@
   </div>
 </header>
 
-<main class="main">
+<main class="main main--form">
 
-  <section class="section">
-    <div class="filters-bar filters-bar--split">
-      <div class="pagina-select">
-        <select class="filter-select" id="filter-pagina">
-          <option value="10">10</option>
-          <option value="25">25</option>
-          <option value="50" selected>50</option>
-        </select>
-        <span class="pagina-select__label">resultados por página</span>
-      </div>
-      <input type="text" class="search-input" id="filter-busca" placeholder="Pesquisar..." style="max-width:320px" />
+  <div class="card form-grid">
+    <div class="field-block field-block--wide">
+      <label class="field-label">Nome do Cargo</label>
+      <input type="text" class="field-input" id="input-nome" placeholder="Ex: Técnico de Instalação" />
     </div>
+    <div class="field-block">
+      <label class="field-label">Salário Base</label>
+      <input type="number" step="0.01" min="0" class="field-input" id="input-salario" placeholder="0,00" />
+    </div>
+  </div>
 
-    <div class="table-wrapper">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Pedido compra</th>
-            <th>Pedido despesas</th>
-            <th>Cliente</th>
-            <th>Tecnico</th>
-            <th>Status cliente</th>
-            <th>Status técnico</th>
-            <th class="col-acoes"></th>
-          </tr>
-        </thead>
-        <tbody id="instalacoes-tbody">
-          <tr><td colspan="7" class="table-empty-cell">Carregando...</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="section-header" style="margin-top:8px">
-      <span class="section-badge" id="instalacoes-count-badge">0 instalações</span>
-    </div>
-  </section>
+  <div class="form-footer">
+    <button class="btn btn--primary btn--lg" id="btn-confirmar">Salvar Cargo</button>
+  </div>
 
 </main>
 
-<script src="instalacoes.js"></script>
+<div class="toast-container" id="toast-container"></div>
+
+<script src="novo-cargo-salario.js"></script>
 </body>
 </html>

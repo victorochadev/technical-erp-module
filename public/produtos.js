@@ -29,6 +29,15 @@ function itemEditarProduto(id) {
   `
 }
 
+function itemExcluirProduto(id) {
+  return `
+    <button class="row-actions__item row-actions__item--danger" type="button" data-action="excluir" data-id="${id}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>
+      Excluir
+    </button>
+  `
+}
+
 async function renderTabela() {
   fecharTodosOsMenus()
   const params = new URLSearchParams(state.filters)
@@ -98,9 +107,26 @@ function setupAcoes() {
     const menu = document.getElementById('row-menu-flutuante')
     const jaAberto = menu && menu.classList.contains('row-actions__menu--open') && menu.dataset.abertoPara === id
     fecharTodosOsMenus()
-    if (!jaAberto) abrirMenuParaToggle(toggle, id, itemEditarProduto(id))
+    if (!jaAberto) abrirMenuParaToggle(toggle, id, itemEditarProduto(id) + itemExcluirProduto(id))
   })
   document.addEventListener('click', e => {
+    const excluir = e.target.closest('[data-action="excluir"]')
+    if (excluir) {
+      const id = excluir.dataset.id
+      if (!window.confirm('Deseja realmente excluir este produto? Esta ação não pode ser desfeita.')) return
+
+      fecharTodosOsMenus()
+      fetch(`/api/produtos/${id}`, { method: 'DELETE' })
+        .then(async res => {
+          if (res.ok) return
+          const body = await res.json().catch(() => ({}))
+          throw new Error(body.erro || 'Não foi possível excluir o produto.')
+        })
+        .then(renderTabela)
+        .catch(err => window.alert(err.message))
+      return
+    }
+
     if (!e.target.closest('.row-actions') && !e.target.closest('#row-menu-flutuante')) fecharTodosOsMenus()
   })
   window.addEventListener('scroll', fecharTodosOsMenus, true)

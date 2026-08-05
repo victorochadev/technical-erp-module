@@ -16,45 +16,34 @@ function acoesMenu(id) {
   `
 }
 
-function itemEditarCliente(id) {
+function itemEditarFuncionario(id) {
   return `
-    <a class="row-actions__item" href="novo-cliente.html?id=${id}">
+    <a class="row-actions__item" href="novo-funcionario.html?id=${id}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
       Editar
     </a>
   `
 }
 
-function itemExcluirCliente(id) {
-  return `
-    <button class="row-actions__item row-actions__item--danger" type="button" data-action="excluir" data-id="${id}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>
-      Excluir
-    </button>
-  `
-}
-
 async function renderTabela() {
   fecharTodosOsMenus()
   const params = new URLSearchParams(state.filters)
-  const clientes = await fetchJson(`/api/clientes?${params.toString()}`)
-  const tbody = document.getElementById('clientes-tbody')
-  document.getElementById('clientes-count-badge').textContent = `${clientes.length} cliente${clientes.length !== 1 ? 's' : ''}`
+  const funcionarios = await fetchJson(`/api/funcionarios?${params.toString()}`)
+  const tbody = document.getElementById('funcionarios-tbody')
+  document.getElementById('funcionarios-count-badge').textContent = `${funcionarios.length} funcionário${funcionarios.length !== 1 ? 's' : ''}`
 
-  if (clientes.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="table-empty-cell">Nenhum cliente encontrado</td></tr>'
+  if (funcionarios.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="table-empty-cell">Nenhum funcionário encontrado</td></tr>'
     return
   }
 
-  tbody.innerHTML = clientes.map(c => `
+  tbody.innerHTML = funcionarios.map(f => `
     <tr>
-      <td>${c.razaoSocial}</td>
-      <td>${c.nomeFantasia}</td>
-      <td>${c.cnpj}</td>
-      <td class="text-muted">${c.cidade}</td>
-      <td>${c.telefone || '—'}</td>
-      <td class="text-muted">${c.email || '—'}</td>
-      <td>${acoesMenu(c.id)}</td>
+      <td>${f.nome}</td>
+      <td class="text-muted">${f.cargo || '—'}</td>
+      <td>${f.telefone || '—'}</td>
+      <td class="text-muted">${f.email || '—'}</td>
+      <td>${acoesMenu(f.id)}</td>
     </tr>
   `).join('')
 }
@@ -97,34 +86,17 @@ function abrirMenuParaToggle(toggle, id, htmlConteudo) {
 }
 
 function setupAcoes() {
-  document.getElementById('clientes-tbody').addEventListener('click', e => {
+  document.getElementById('funcionarios-tbody').addEventListener('click', e => {
     const toggle = e.target.closest('.row-actions__toggle')
     if (!toggle) return
     const id = toggle.closest('.row-actions').dataset.id
     const menu = document.getElementById('row-menu-flutuante')
     const jaAberto = menu && menu.classList.contains('row-actions__menu--open') && menu.dataset.abertoPara === id
     fecharTodosOsMenus()
-    if (!jaAberto) abrirMenuParaToggle(toggle, id, itemEditarCliente(id) + itemExcluirCliente(id))
+    if (!jaAberto) abrirMenuParaToggle(toggle, id, itemEditarFuncionario(id))
   })
 
   document.addEventListener('click', e => {
-    const excluir = e.target.closest('[data-action="excluir"]')
-    if (excluir) {
-      const id = excluir.dataset.id
-      if (!window.confirm('Deseja realmente excluir este cliente? Esta ação não pode ser desfeita.')) return
-
-      fecharTodosOsMenus()
-      fetch(`/api/clientes/${id}`, { method: 'DELETE' })
-        .then(async res => {
-          if (res.ok) return
-          const body = await res.json().catch(() => ({}))
-          throw new Error(body.erro || 'Não foi possível excluir o cliente.')
-        })
-        .then(renderTabela)
-        .catch(err => window.alert(err.message))
-      return
-    }
-
     if (!e.target.closest('.row-actions') && !e.target.closest('#row-menu-flutuante')) fecharTodosOsMenus()
   })
   window.addEventListener('scroll', fecharTodosOsMenus, true)

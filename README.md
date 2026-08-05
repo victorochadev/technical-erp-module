@@ -2,11 +2,13 @@
 
 Protótipo em Node.js/Express do módulo de Área Técnica do ERP BM1/BJControl:
 atendimentos técnicos (remoto/presencial/laboratório), instalações com
-checklist de aprovação de fotos, dashboard de métricas, quadro Kanban de
-laboratório, wiki de conhecimento técnico, helpdesk de chat com clientes, e
-os cadastros de apoio (clientes, técnicos terceirizados, produtos, grupos de
-produto, requisições). Serve de referência visual e funcional para o
-programador do ERP real integrar o módulo.
+checklist de aprovação de fotos, dashboard de métricas (com dashboards por
+categoria alimentados por planilhas do Google), quadro Kanban de laboratório,
+JET-IA (busca na base de conhecimento + pergunta em linguagem natural via
+webhook n8n), helpdesk de chat com clientes, e os cadastros de apoio
+(clientes, técnicos terceirizados, produtos, grupos de produto, WMS,
+funcionários, cargos e salários, requisições). Serve de referência visual e
+funcional para o programador do ERP real integrar o módulo.
 
 ## Como rodar
 
@@ -47,6 +49,7 @@ Telas no protótipo, navegáveis pelo menu lateral:
 - `requisicoes.html` — **Requisições** (módulo Vendas)
 - `clientes.html`, `tecnicos-terceirizados.html` — **Cadastro**: Clientes e Técnicos Terceirizados
 - `produtos.html`, `grupos-produto.html` — **Cadastro**: Produtos e Grupos de Produtos
+- `wms.html`, `funcionarios.html`, `cargos-salarios.html` — **Cadastro**: WMS, Funcionários e Cargos e Salários
 
 ## Banco de dados (Supabase)
 
@@ -56,7 +59,7 @@ laboratório, requisições, produtos, grupos de produto, wiki e helpdesk) roda
 sobre um projeto Supabase (Postgres) real, substituindo os arrays em memória
 que existiam antes.
 
-- `supabase/schema.sql` — schema completo (17 tabelas + RLS + seed dos dados
+- `supabase/schema.sql` — schema completo (22 tabelas + RLS + seed dos dados
   mestres). Rode esse arquivo no SQL Editor do Supabase ao configurar um novo
   projeto do zero.
 - `scripts/seedSupabaseData.js` — script único (`node scripts/seedSupabaseData.js`)
@@ -97,17 +100,50 @@ O protótipo funciona tanto em desktop quanto em celular/tablet. Abaixo de
   por vez (mesmo padrão do Trello mobile). O modal de detalhes do cartão
   empilha a coluna de informações e a de comentários.
 
+## JET-IA (assistente de IA técnico)
+
+A tela **JET-IA** (`wiki.html`, item "JET-IA" da Área Técnica no menu lateral — antigo
+"Wiki", renomeado) já tinha a caixa de busca "Qual a sua dúvida?", que hoje só filtra
+os artigos da base de conhecimento por palavra-chave (`GET /api/wiki?busca=`). Essa
+tela ganhou um segundo caminho: um botão **"Perguntar à JET-IA"** (e a tecla Enter no
+mesmo campo) que envia a pergunta para o fluxo de IA no n8n (projeto irmão
+`JET-IA-ERP/n8n/jet-ia-flow.json`) e mostra a resposta gerada logo abaixo, sem afetar
+o filtro de artigos existente.
+
+- **`public/jetia-config.js`** — URL do webhook do n8n + identificação do colaborador
+  (hoje fixa em `victor.rocha`, já que o login deste protótipo é de usuário único — ver
+  seção "Login" abaixo). **Troque `webhookUrl` pela URL real** gerada ao importar
+  `jet-ia-flow.json` no n8n (produção ou teste) antes de testar.
+- **`public/jetia-widget.js`** — chama o webhook direto do navegador (`fetch`),
+  sem passar pelo Express local — é a única chamada de rede do front-end que
+  não vai para `/api/...` (não fala com o Supabase, então não conflita com a
+  arquitetura "tudo via Express" adotada para o resto do app). Trata os 3
+  formatos de resposta do fluxo (sucesso `200`, payload inválido `400`, erro
+  interno `500` — ver `JET-IA-ERP/n8n/INTEGRATION.md`).
+- **Atenção — CORS:** como a chamada é feita direto do navegador para o n8n (origem
+  diferente), a instância de n8n precisa permitir CORS para a origem do ERP
+  (ex.: `http://localhost:3300`). Se o teste falhar com erro de CORS no
+  console do navegador, esse é o motivo — verifique as configurações de CORS
+  da sua instância de n8n (variam entre self-hosted e n8n Cloud).
+- O escopo da IA é só **dúvidas técnicas de equipamentos** (mesma base de
+  conhecimento da tela JET-IA) — não consulta dados financeiros/operacionais do ERP.
+
 ## Menu lateral (sidebar)
 
 A sidebar tem só três ícones — **Cadastro**, **Vendas** e **Área Técnica** —,
-todos com flyout ao passar o mouse:
-- **Cadastro**: Clientes, Técnicos Terceirizados, Produtos, Grupos de
-  Produtos (ver seções abaixo).
+todos com flyout ao passar o mouse. HTML replicado em cada página (não
+componentizado), então uma mudança no menu precisa ser aplicada em todas as
+~28 páginas.
+- **Cadastro** (ordem real): Clientes, Técnicos Terceirizados, Produtos,
+  Grupos de Produtos, WMS, Funcionários, Cargos e Salários (ver seções
+  abaixo).
 - **Vendas**: Requisições (ver seção abaixo).
-- **Área Técnica**: Atendimentos, Instalações, Visitas/Amostra, Laboratório,
-  Wiki, HelpDesk e Dashboard. Todas são funcionais, exceto **Visitas/Amostra**,
-  que continua placeholder (`href="#"`). **HelpDesk** abre em uma nova aba
-  (`target="_blank"`), diferente dos demais itens do menu.
+- **Área Técnica** (ordem real): Atendimentos, Instalações, Visitas/Amostra,
+  Laboratório, **JET-IA** (o rótulo visível mudou de "Wiki" para "JET-IA" —
+  o arquivo continua sendo `wiki.html`/`wiki.js`, sem renomeação), HelpDesk,
+  Dashboard (último item, não o primeiro). Todas são funcionais, exceto
+  **Visitas/Amostra**, que continua placeholder (`href="#"`). **HelpDesk**
+  abre em uma nova aba (`target="_blank"`), diferente dos demais itens.
 
 Os demais ícones do ERP real (aprovações, painel geral, perfil, indicadores,
 produtos, ajuda) foram removidos por não terem nenhuma função neste
@@ -128,9 +164,9 @@ que verifica essa flag e redireciona para `login.html` se não estiver
 presente. Para trocar a credencial, edite as constantes `USUARIO_VALIDO` e
 `SENHA_VALIDA` no topo de `login.js`.
 
-## Cadastro (`clientes.html`, `tecnicos-terceirizados.html`, `produtos.html`, `grupos-produto.html`)
+## Cadastro (`clientes.html`, `tecnicos-terceirizados.html`, `produtos.html`, `grupos-produto.html`, `wms.html`, `funcionarios.html`, `cargos-salarios.html`)
 
-Ícone de crachá da sidebar, com quatro submódulos — listas simples (busca +
+Ícone de crachá da sidebar, com sete submódulos — listas simples (busca +
 botão "+"), seguindo o mesmo padrão visual das outras telas:
 
 - **Clientes** (`clientes.html` + `novo-cliente.html`): lista todos os
@@ -138,7 +174,9 @@ botão "+"), seguindo o mesmo padrão visual das outras telas:
   autocompletes de Atendimentos) com busca por razão social, nome fantasia,
   CNPJ ou cidade. "+" abre um formulário completo (razão social, CNPJ, IE,
   endereço, contato, telefone, e-mail, site) que grava de verdade via
-  `POST /api/clientes`.
+  `POST /api/clientes`. Menu de ações (⋮) tem **Editar** e **Excluir**
+  (`DELETE /api/clientes/:id`) — confirmação via `window.confirm` nativo,
+  recarrega a lista inteira após excluir.
 - **Técnicos Terceirizados** (`tecnicos-terceirizados.html` +
   `novo-tecnico-terceirizado.html`): cadastro novo, separado da lista interna
   de técnicos usada em Atendimentos/Laboratório/Requisições — representa
@@ -149,12 +187,31 @@ botão "+"), seguindo o mesmo padrão visual das outras telas:
   valor, valor à vista, "controla estoque" (booleano), grupo 1 e grupo 2
   (combobox de texto livre, não vinculado à tabela `grupos_produto`), NCM,
   juros e imagem (miniatura exibida na coluna da lista). Grava via
-  `POST /api/produtos`, edita via `PUT /api/produtos/:id`.
+  `POST /api/produtos`, edita via `PUT /api/produtos/:id`, e exclui via
+  `DELETE /api/produtos/:id` (mesmo padrão de confirmação de Clientes) — como
+  `wms_unidades.produto_id` tem `on delete cascade`, excluir um produto
+  apaga silenciosamente as unidades WMS vinculadas a ele.
 - **Grupos de Produtos** (`grupos-produto.html` + `novo-grupo-produto.html`):
   cadastro simples (só nome), `POST`/`PUT /api/grupos-produto`. **Nota:** os
   campos grupo 1/2 de Produtos hoje não referenciam esta tabela por FK — são
   texto livre, então cadastrar um grupo aqui não aparece automaticamente como
   opção estruturada no formulário de Produtos.
+- **WMS** (`wms.html` + `novo-wms.html`): rastreamento de números de série por
+  lote de produto — não é um cadastro de campos livres. A lista
+  (`wms.html`) agrupa por Produto + Lote (Produto, Lote, Quantidade, Números
+  WMS). Em "novo-wms.html" você escolhe um Produto e uma Quantidade; o
+  servidor calcula o próximo lote daquele produto (`MAX(lote)+1`) e gera N
+  números únicos automaticamente, inserindo N linhas em `wms_unidades`
+  (`POST /api/wms` com `{produtoId, quantidade}`). Sem edição/exclusão de
+  unidade individual pela UI.
+- **Funcionários** (`funcionarios.html` + `novo-funcionario.html`): Nome,
+  Cargo (combobox pesquisável alimentado por Cargos e Salários, mas
+  armazenado como texto solto — sem FK), Telefone, E-mail. CRUD via
+  `GET/POST/PUT /api/funcionarios` — **sem exclusão** (nem botão, nem rota).
+- **Cargos e Salários** (`cargos-salarios.html` + `novo-cargo-salario.html`):
+  Nome do Cargo (único) e Salário Base. CRUD via
+  `GET/POST/PUT /api/cargos-salarios` — **sem exclusão**, mesmo padrão de
+  Funcionários.
 
 ## Atendimentos (`atendimentos.html`)
 
@@ -194,6 +251,25 @@ Cada linha tem um menu de ações (⋮) com duas opções:
 (A tabela detalhada de atendimentos foi movida para `atendimentos.html`,
 já que agora tem tela própria dividida por abas.)
 
+### Dashboards por Categoria (planilhas do Google)
+
+Seção adicional no Dashboard, com 3 abas — **Suporte Remoto**, **Presencial**,
+**Laboratório** —, cada uma mostrando um gráfico de distribuição por
+modalidade (Instalação e Treinamento / Atendimento Humano / Jet IA / Outros),
+gráfico de equipamentos mais atendidos e um seletor de período. Roda em
+paralelo aos KPIs vindos do Supabase, sem substituir nada — é só leitura,
+nunca grava de volta na planilha.
+
+- `public/sheets-config.js` — uma config por categoria (`csvUrl` de uma aba
+  do Google Sheets publicada em CSV, ou `sheetId`+`sheetName`). Hoje só
+  **Suporte Remoto** está conectado (planilha "REGISTRO DE ATENDIMENTOS -
+  CALLBEL"); Presencial e Laboratório aguardam a fonte de dados — o card
+  mostra "Aguardando fonte de dados" até serem configurados.
+- `public/sheets-source.js` — faz o parsing do CSV, detecta colunas por
+  sinônimos automaticamente, classifica a modalidade por regex e agrega
+  contagens/percentuais. Releitura automática a cada 60s
+  (`SHEETS_CONFIG.refreshSeconds`).
+
 ## Novo Atendimento (`novo-atendimento.html`)
 
 Fluxo em duas etapas, replicando a tela real do ERP:
@@ -211,6 +287,16 @@ Fluxo em duas etapas, replicando a tela real do ERP:
      (`/api/tecnicos`, `/api/catalogo/equipamentos`, `/api/catalogo/modelos`) —
      selecionar um Modelo preenche automaticamente o Equipamento (se vazio) e
      os dois campos **WMS**, com base no cadastro do produto.
+   - **Toggle Técnico Bannerjet / Técnico Terceirizado**: acima do campo de
+     busca de técnico, duas abas escolhem se o autocomplete busca em
+     `/api/tecnicos` (interno) ou `/api/tecnicos-terceirizados`. A aba
+     Terceirizado se desabilita automaticamente (e volta para Bannerjet, com
+     um toast) quando o tipo do atendimento é **Remoto** — regra de negócio:
+     não faz sentido despachar um terceiro para um chamado remoto. Ao buscar
+     terceirizados, os resultados são ordenados por proximidade regional com o
+     cliente (mesma cidade > mesmo estado > resto, já que o protótipo não tem
+     dados geográficos reais), com um badge "Mesma cidade"/"Mesmo estado" em
+     cada resultado (`atendimento-form.js`, função `prioridadeRegiao`).
    - **Anexos** de fotos/vídeos por drag-and-drop ou clique (preview local,
      ver `adicionarArquivos()` em `atendimento-form.js` — sem upload real ainda).
    - Campos **Defeito** e **Laudo Técnico** (o campo "Solução" foi removido
@@ -326,11 +412,13 @@ Quadro Kanban para acompanhar a manutenção dos equipamentos, com cartões que
 podem ser arrastados manualmente entre colunas — a coluna em que o cartão
 está representa o status atual da manutenção.
 
-- **Colunas**: Entrada, Fila, Orçamento, Manutenção, Testes, Finalizado,
+- **Colunas fixas**: Entrada, Diagnóstico, Orçamento, Manutenção, Finalizado,
   Aguardando Coleta, Coletado (cada uma com contador de cartões no cabeçalho).
-  Cada coluna tem uma cor fixa própria, e essa cor é usada como etiqueta no
-  cartão (a etiqueta = a coluna atual do cartão, exibida como um chip colorido
-  com o nome da coluna).
+  O `supabase/schema.sql` reseeda exatamente essas 7 colunas toda vez que
+  roda (e remove qualquer coluna fora dessa lista) — não existe mais botão
+  "Adicionar outra coluna" na UI nem rota para criar coluna. Cada coluna tem
+  uma cor fixa própria, usada como etiqueta no cartão (chip colorido com o
+  nome da coluna).
 - **Cartões**: chip de etiqueta (cor da coluna), nome do cliente + número,
   borda esquerda colorida conforme o **SLA** (verde = Padrão, laranja =
   Importante, vermelho = Urgente — não confundir com a cor da etiqueta, são
@@ -364,12 +452,13 @@ está representa o status atual da manutenção.
   coluna abre um campo de texto; ao confirmar, cria um cartão via
   `POST /api/laboratorio` (nome do cliente, sem técnico/dados de atendimento
   customizados — pode ser editado depois se o backend real permitir).
-- **Criar/excluir colunas**: botão "+ Adicionar outra coluna" ao final do
-  quadro cria uma coluna nova (`POST /api/laboratorio/colunas`, cor atribuída
-  automaticamente de uma paleta fixa). O menu "⋮" no cabeçalho de cada coluna
-  tem a opção "Excluir coluna" (`DELETE /api/laboratorio/colunas/:id`) — só
-  funciona se a coluna estiver vazia; se tiver cartões, mostra um aviso
-  pedindo para mover ou excluir os cartões antes.
+- **Excluir coluna**: o menu "⋮" no cabeçalho de cada coluna ainda tem a
+  opção "Excluir coluna" (`DELETE /api/laboratorio/colunas/:id`) — só
+  funciona se a coluna estiver vazia; se tiver cartões, recusa com um aviso
+  pedindo para mover ou excluir os cartões antes. Na prática as 7 colunas se
+  comportam como fixas (o schema as recria a cada setup), mas o botão/rota de
+  exclusão em si continua funcional para quem esvaziar uma coluna de
+  propósito. Não há mais como criar uma coluna nova pela UI.
 
 ## Wiki (`wiki.html` + `novo-wiki-artigo.html` + `novo-wiki-grupo.html`)
 
@@ -451,6 +540,9 @@ src/
     wikiRepository.js               # artigos da wiki — tabela `wiki_artigos`
     wikiGruposRepository.js         # grupos da wiki — tabela `wiki_grupos`
     helpdeskRepository.js           # conversas/mensagens — tabelas `helpdesk_conversas`/`helpdesk_mensagens`
+    wmsRepository.js                # rastreamento de números de série — tabela `wms_unidades`
+    funcionariosRepository.js       # funcionários — tabela `funcionarios`
+    cargosSalariosRepository.js     # cargos e salários — tabela `cargos_salarios`
   services/
     dashboardService.js            # agregações (resumo mensal, ranking por técnico)
   routes/
@@ -479,6 +571,14 @@ public/
   novo-produto.html, novo-produto.css, novo-produto.js   # criação/edição de produto
   grupos-produto.html, grupos-produto.css, grupos-produto.js   # lista de grupos de produto
   novo-grupo-produto.html, novo-grupo-produto.css, novo-grupo-produto.js   # criação de grupo de produto
+  wms.html, wms.css, wms.js                           # rastreamento de números de série por lote
+  novo-wms.html, novo-wms.js                          # registro de novo lote WMS
+  funcionarios.html, funcionarios.css, funcionarios.js   # lista de funcionários
+  novo-funcionario.html, novo-funcionario.css, novo-funcionario.js   # criação/edição de funcionário
+  cargos-salarios.html, cargos-salarios.css, cargos-salarios.js   # lista de cargos e salários
+  novo-cargo-salario.html, novo-cargo-salario.css, novo-cargo-salario.js   # criação/edição de cargo
+  jetia-config.js, jetia-widget.js                    # widget de pergunta em linguagem natural (JET-IA)
+  sheets-config.js, sheets-source.js                  # dashboards por categoria alimentados por Google Sheets
 ```
 
 ## Como integrar no ERP real

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Wiki — Base de Conhecimento Técnico</title>
+<title>JET-IA — Base de Conhecimento Técnico</title>
 <link rel="stylesheet" href="styles.css" />
 <link rel="stylesheet" href="wiki.css" />
 <script>
@@ -44,6 +44,18 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.17L4 3a1 1 0 0 0-1 1l.17 5.59a2 2 0 0 0 .66 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83z"/><circle cx="7" cy="7" r="1.2"/></svg>
         Grupos de Produtos
       </a>
+      <a href="wms.html" class="sidebar__flyout-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+        WMS
+      </a>
+      <a href="funcionarios.html" class="sidebar__flyout-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="3"/><path d="M2 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M17 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
+        Funcionários
+      </a>
+      <a href="cargos-salarios.html" class="sidebar__flyout-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 6v12"/><path d="M15.5 9.5c0-1.5-1.5-2.5-3.5-2.5s-3.5 1-3.5 2.5c0 1.5 1.5 2 3.5 2.5s3.5 1 3.5 2.5-1.5 2.5-3.5 2.5-3.5-1-3.5-2.5"/></svg>
+        Cargos e Salários
+      </a>
     </div>
   </div>
   <div class="sidebar__item">
@@ -82,7 +94,7 @@
       </a>
       <a href="wiki.html" class="sidebar__flyout-item sidebar__flyout-item--active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
-        Wiki
+        JET-IA
       </a>
       <a href="helpdesk.html" class="sidebar__flyout-item" target="_blank" rel="opener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -101,8 +113,8 @@
     <div class="header-brand">
       <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
       <div class="header-title-group">
-        <h1 class="header-title">Wiki — Base de Conhecimento Técnico</h1>
-        <p class="header-subtitle">Home / Área Técnica / Wiki</p>
+        <h1 class="header-title">JET-IA — Base de Conhecimento Técnico</h1>
+        <p class="header-subtitle">Home / Área Técnica / JET-IA</p>
       </div>
     </div>
     <div class="header-meta">
@@ -115,31 +127,50 @@
 
 <main class="main">
 
-  <div class="card wiki-search-card">
-    <label class="wiki-search-label" for="wiki-busca">Qual a sua dúvida?</label>
-    <input type="text" class="search-input wiki-search-input" id="wiki-busca" placeholder="Digite uma palavra-chave: alinhamento de câmera, PSN, teflon, SignMaster..." autofocus />
-  </div>
+  <div class="wiki-hero">
 
-  <section class="section">
-    <div class="list-toolbar">
-      <select class="wiki-grupo-select" id="wiki-grupo-filtro">
-        <option value="">Todos os grupos</option>
-      </select>
-      <div class="wiki-toolbar-actions">
-        <a class="btn btn--ghost" href="novo-wiki-grupo.html">Novo Grupo</a>
-        <a class="btn btn--primary" href="novo-wiki-artigo.html">Nova Wiki</a>
+    <span class="jetia-eyebrow"><span class="jetia-eyebrow__dot"></span>JET-IA · Assistente técnico</span>
+
+    <div>
+      <h2 class="wiki-hero__title">Qual a sua dúvida?</h2>
+      <p class="wiki-hero__subline">Olá! Eu sou a JET-IA e estou aqui para te ajudar. Fique à vontade para perguntar qualquer coisa sobre os equipamentos Bannerjet.</p>
+    </div>
+
+    <div class="card jetia-console">
+      <svg class="jetia-reg jetia-reg--tl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 9V2h7"/></svg>
+      <svg class="jetia-reg jetia-reg--tr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 9V2h7"/></svg>
+      <svg class="jetia-reg jetia-reg--bl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 9V2h7"/></svg>
+      <svg class="jetia-reg jetia-reg--br" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 9V2h7"/></svg>
+
+      <div class="wiki-hero__bar">
+        <svg class="jetia-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+        <input type="text" class="wiki-hero__input" id="wiki-busca" placeholder="Escreva sua dúvida" autofocus />
+        <button type="button" class="wiki-hero__submit" id="jetia-ask-btn" aria-label="Perguntar à JET-IA" title="Perguntar à JET-IA">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        </button>
+      </div>
+
+      <div class="jetia-tags">
+        <button type="button" class="jetia-chip" data-q="Como alinhar a câmera da plotter?"><span class="jetia-chip__hole"></span>Plotter · alinhamento de câmera</button>
+        <button type="button" class="jetia-chip" data-q="Quais os principais parâmetros da fibra laser?"><span class="jetia-chip__hole"></span>Fibra Laser · parâmetros</button>
+        <button type="button" class="jetia-chip" data-q="Como trocar a lâmina da guilhotina?"><span class="jetia-chip__hole"></span>Guilhotina · troca de lâmina</button>
+        <button type="button" class="jetia-chip" data-q="Como recuperar a licença do SignMaster?"><span class="jetia-chip__hole"></span>SignMaster · licença</button>
       </div>
     </div>
-    <div class="section-header">
-      <h2 class="section-title">Artigos</h2>
-      <span class="section-badge" id="wiki-count-badge">0 artigos</span>
+
+    <div class="jetia-resposta" id="jetia-resposta" hidden>
+      <p class="jetia-resposta__label">Resposta</p>
+      <div class="jetia-resposta__loading" id="jetia-loading" hidden>Consultando a JET-IA...</div>
+      <div class="jetia-resposta__erro" id="jetia-erro" hidden></div>
+      <div class="jetia-resposta__texto" id="jetia-texto" hidden></div>
     </div>
-    <div class="wiki-list" id="wiki-list"></div>
-  </section>
+
+  </div>
 
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="wiki.js"></script>
+<script src="jetia-config.js"></script>
+<script src="jetia-widget.js"></script>
 </body>
 </html>

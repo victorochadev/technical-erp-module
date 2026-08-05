@@ -15,11 +15,6 @@ const SLA_DIAS_UTEIS_ALERTA = 2 // a partir de 2 dias úteis (ou menos) para ven
 // aplicável a partir daqui (o que resta é só a coleta pelo cliente).
 const COLUNAS_RESOLVIDAS = ['finalizado', 'aguardando-coleta', 'coletado']
 
-const PALETA_CORES_NOVAS_COLUNAS = [
-  '#64748b', '#3b82f6', '#8b5cf6', '#f59e0b', '#06b6d4', '#22c55e', '#eab308', '#ec4899',
-  '#ef4444', '#14b8a6', '#0ea5e9', '#a3a3a3',
-]
-
 const SLA_CORES = { padrao: '#22c55e', importante: '#f59e0b', urgente: '#ef4444' }
 
 const DEFEITOS_POOL = [
@@ -93,14 +88,6 @@ function nomeColuna(colunas, id) {
 
 function gerarWms() {
   return String(rand(700000000, 799999999))
-}
-
-function slugify(nome) {
-  return nome
-    .toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '') || 'coluna'
 }
 
 function calcularSla(dataVencimentoIso, coluna) {
@@ -303,28 +290,6 @@ async function adicionarComentario(id, texto) {
   return serializar(colunas, mapCard(atualizado))
 }
 
-async function criarColuna(nome) {
-  if (!nome || !nome.trim()) return null
-  const nomeLimpo = nome.trim()
-  const colunas = await fetchColunas()
-
-  let id = slugify(nomeLimpo)
-  let sufixo = 2
-  while (colunas.some(c => c.id === id)) {
-    id = `${slugify(nomeLimpo)}-${sufixo}`
-    sufixo++
-  }
-  const cor = PALETA_CORES_NOVAS_COLUNAS[colunas.length % PALETA_CORES_NOVAS_COLUNAS.length]
-
-  const { data, error } = await supabase
-    .from('laboratorio_colunas')
-    .insert({ id, nome: nomeLimpo, cor, ordem: colunas.length + 1 })
-    .select()
-    .single()
-  if (error) throw error
-  return mapColuna(data)
-}
-
 async function excluirColuna(id) {
   const colunas = await fetchColunas()
   if (!colunas.some(c => c.id === id)) return { erro: 'not_found' }
@@ -341,4 +306,4 @@ async function excluirColuna(id) {
   return { ok: true }
 }
 
-module.exports = { listQuadro, moverCard, criarCard, criarCardDeAtendimento, adicionarComentario, criarColuna, excluirColuna }
+module.exports = { listQuadro, moverCard, criarCard, criarCardDeAtendimento, adicionarComentario, excluirColuna }

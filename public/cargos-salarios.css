@@ -7,12 +7,6 @@
 }
 .btn-fab:hover { filter: brightness(1.08); }
 
-.produto-thumb {
-  width: 40px; height: 40px; border-radius: var(--radius-sm); object-fit: cover;
-  border: 1px solid var(--border-subtle); background: var(--bg-surface); display: block;
-}
-.produto-thumb--vazio { display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.8rem; }
-
 .row-actions { position: relative; }
 .row-actions__toggle {
   width: 30px; height: 30px; border-radius: 6px; border: none; background: none;
@@ -33,8 +27,6 @@
 }
 .row-actions__item svg { width: 15px; height: 15px; flex-shrink: 0; }
 .row-actions__item:hover { background: var(--bg-surface); color: var(--text-primary); }
-.row-actions__item--danger { color: #dc2626; }
-.row-actions__item--danger:hover { color: #b91c1c; background: #fef2f2; }
 #row-menu-flutuante { z-index: 300; }
 
 @media (max-width: 768px) {

@@ -46,7 +46,7 @@ async function salvarArtigo() {
   if (!res.ok) { showToast('Não foi possível salvar a wiki.'); return }
   await res.json()
 
-  showToast('Wiki salva com sucesso.')
+  showToast('JET-IA salva com sucesso.')
   setTimeout(() => { window.location.href = 'wiki.html' }, 1200)
 }
 
