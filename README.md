@@ -1,7 +1,12 @@
-# Módulo de Dashboard — Área Técnica (Atendimentos)
+# Módulo Técnico — ERP BM1/BJControl
 
-Protótipo em Node.js/Express para o dashboard de métricas de atendimentos técnicos,
-para servir de referência ao programador do ERP BM1/BJControl integrar o módulo real.
+Protótipo em Node.js/Express do módulo de Área Técnica do ERP BM1/BJControl:
+atendimentos técnicos (remoto/presencial/laboratório), instalações com
+checklist de aprovação de fotos, dashboard de métricas, quadro Kanban de
+laboratório, wiki de conhecimento técnico, helpdesk de chat com clientes, e
+os cadastros de apoio (clientes, técnicos terceirizados, produtos, grupos de
+produto, requisições). Serve de referência visual e funcional para o
+programador do ERP real integrar o módulo.
 
 ## Como rodar
 
@@ -15,8 +20,13 @@ Supabase:
 
 ```
 SUPABASE_URL=https://xxxxx.supabase.co
-SUPABASE_ANON_KEY=xxxxx
+SUPABASE_SERVICE_ROLE_KEY=xxxxx
 ```
+
+**Importante:** o servidor usa a **service_role key** (secreta, bypassa RLS),
+não a anon key — só o Express fala com o Supabase, o navegador não tem mais
+acesso direto ao banco (ver seção "Banco de dados (Supabase)" abaixo). Nunca
+exponha essa chave no front-end nem a versione no repositório.
 
 Acesse `http://localhost:3300` — você vai cair na tela de **login**
 (`login.html`) antes de qualquer outra página. Credenciais em `login.js`
@@ -26,34 +36,47 @@ maio, junho e julho de 2026 como massa inicial.
 
 Telas no protótipo, navegáveis pelo menu lateral:
 
-- `atendimentos.html` — **Atendimentos**, com abas Remoto/Presencial (tela inicial do módulo Área Técnica)
+- `atendimentos.html` — **Atendimentos**, com abas Remoto/Presencial/Laboratório (tela inicial do módulo Área Técnica)
 - `index.html` — **Dashboard** de métricas (Área Técnica)
 - `novo-atendimento.html` — **Novo Atendimento** (fluxo de criação/edição, Área Técnica)
 - `instalacoes.html` — **Instalações**, lista de pedidos de venda com instalação técnica pendente
 - `instalacao-detalhes.html` — detalhe de uma instalação, com checklist de aprovação de fotos
+- `laboratorio.html` — **Laboratório**, quadro Kanban de manutenção (Área Técnica)
+- `wiki.html` — **Wiki**, base de conhecimento técnico (Área Técnica)
+- `helpdesk.html` — **HelpDesk**, chat interno com clientes (Área Técnica)
+- `requisicoes.html` — **Requisições** (módulo Vendas)
+- `clientes.html`, `tecnicos-terceirizados.html` — **Cadastro**: Clientes e Técnicos Terceirizados
+- `produtos.html`, `grupos-produto.html` — **Cadastro**: Produtos e Grupos de Produtos
 
 ## Banco de dados (Supabase)
 
 O módulo técnico inteiro (clientes, técnicos internos e terceirizados,
 catálogo de equipamentos/modelos/WMS, atendimentos, instalações, quadro do
-laboratório e requisições) roda sobre um projeto Supabase (Postgres) real,
-substituindo os arrays em memória que existiam antes.
+laboratório, requisições, produtos, grupos de produto, wiki e helpdesk) roda
+sobre um projeto Supabase (Postgres) real, substituindo os arrays em memória
+que existiam antes.
 
-- `supabase/schema.sql` — schema completo (tabelas + RLS + seed dos dados
-  mestres: clientes, técnicos, técnicos terceirizados, catálogo, colunas do
-  laboratório e requisições). Rode esse arquivo no SQL Editor do Supabase ao
-  configurar um novo projeto do zero.
+- `supabase/schema.sql` — schema completo (17 tabelas + RLS + seed dos dados
+  mestres). Rode esse arquivo no SQL Editor do Supabase ao configurar um novo
+  projeto do zero.
 - `scripts/seedSupabaseData.js` — script único (`node scripts/seedSupabaseData.js`)
   que gera a massa de demonstração de atendimentos/instalações/cards do
   laboratório e insere no banco. Só deve ser rodado uma vez por projeto — os
   números/pedidos têm constraint `UNIQUE`, então uma segunda execução falha
   em conflito ao invés de duplicar dados.
 - `src/data/supabaseClient.js` — client compartilhado, usa `SUPABASE_URL` e
-  `SUPABASE_ANON_KEY` do `.env`.
-- **RLS**: as tabelas têm Row Level Security habilitado com uma policy
-  permissiva para a chave `anon` (`for all ... using (true)`), já que este é
-  um protótipo interno sem Supabase Auth. Não use esse modelo de policy em
-  produção com dados sensíveis reais.
+  `SUPABASE_SERVICE_ROLE_KEY` do `.env`. **Só o servidor Express fala com o
+  Supabase** — o front-end (`public/`) chama exclusivamente `/api/...` no
+  próprio host; não há mais nenhum client Supabase no navegador.
+- **RLS**: todas as tabelas têm Row Level Security habilitado, sem nenhuma
+  policy para `anon`/`authenticated` — ou seja, acesso negado por padrão para
+  qualquer chave que não seja a `service_role` (que sempre bypassa RLS). Até
+  2026-08-05 existia uma policy `anon_all` permissiva (`for all ... using
+  (true)`) combinada com a anon key exposta em `public/supabase-config.js` —
+  isso permitia leitura/escrita irrestritas nos dados reais de clientes a
+  partir do navegador. Foi corrigido: o navegador não fala mais direto com o
+  Supabase (removidos `public/api-shim.js` e `public/supabase-config.js`), e
+  a policy permissiva foi removida via migration.
 
 ## Responsivo
 
@@ -78,12 +101,13 @@ O protótipo funciona tanto em desktop quanto em celular/tablet. Abaixo de
 
 A sidebar tem só três ícones — **Cadastro**, **Vendas** e **Área Técnica** —,
 todos com flyout ao passar o mouse:
-- **Cadastro**: Clientes, Técnicos Terceirizados (ver seção abaixo).
+- **Cadastro**: Clientes, Técnicos Terceirizados, Produtos, Grupos de
+  Produtos (ver seções abaixo).
 - **Vendas**: Requisições (ver seção abaixo).
 - **Área Técnica**: Atendimentos, Instalações, Visitas/Amostra, Laboratório,
-  Wiki e Dashboard. Só **Atendimentos**, **Instalações**, **Laboratório** e
-  **Dashboard** são funcionais — Visitas/Amostra e Wiki continuam
-  placeholders (`href="#"`).
+  Wiki, HelpDesk e Dashboard. Todas são funcionais, exceto **Visitas/Amostra**,
+  que continua placeholder (`href="#"`). **HelpDesk** abre em uma nova aba
+  (`target="_blank"`), diferente dos demais itens do menu.
 
 Os demais ícones do ERP real (aprovações, painel geral, perfil, indicadores,
 produtos, ajuda) foram removidos por não terem nenhuma função neste
@@ -104,10 +128,10 @@ que verifica essa flag e redireciona para `login.html` se não estiver
 presente. Para trocar a credencial, edite as constantes `USUARIO_VALIDO` e
 `SENHA_VALIDA` no topo de `login.js`.
 
-## Cadastro (`clientes.html` + `tecnicos-terceirizados.html`)
+## Cadastro (`clientes.html`, `tecnicos-terceirizados.html`, `produtos.html`, `grupos-produto.html`)
 
-Ícone de crachá da sidebar, com dois submódulos — listas simples (busca +
-botão "+"), sem edição, seguindo o mesmo padrão visual das outras telas:
+Ícone de crachá da sidebar, com quatro submódulos — listas simples (busca +
+botão "+"), seguindo o mesmo padrão visual das outras telas:
 
 - **Clientes** (`clientes.html` + `novo-cliente.html`): lista todos os
   clientes do mock (`src/data/clientesRepository.js`, mesma base usada nos
@@ -121,6 +145,16 @@ botão "+"), sem edição, seguindo o mesmo padrão visual das outras telas:
   prestadores externos (nome, empresa terceirizada, especialidade, cidade,
   contato). Mock em `src/data/tecnicosTerceirizadosRepository.js`, grava via
   `POST /api/tecnicos-terceirizados`.
+- **Produtos** (`produtos.html` + `novo-produto.html`): CRUD completo — nome,
+  valor, valor à vista, "controla estoque" (booleano), grupo 1 e grupo 2
+  (combobox de texto livre, não vinculado à tabela `grupos_produto`), NCM,
+  juros e imagem (miniatura exibida na coluna da lista). Grava via
+  `POST /api/produtos`, edita via `PUT /api/produtos/:id`.
+- **Grupos de Produtos** (`grupos-produto.html` + `novo-grupo-produto.html`):
+  cadastro simples (só nome), `POST`/`PUT /api/grupos-produto`. **Nota:** os
+  campos grupo 1/2 de Produtos hoje não referenciam esta tabela por FK — são
+  texto livre, então cadastrar um grupo aqui não aparece automaticamente como
+  opção estruturada no formulário de Produtos.
 
 ## Atendimentos (`atendimentos.html`)
 
@@ -337,6 +371,35 @@ está representa o status atual da manutenção.
   funciona se a coluna estiver vazia; se tiver cartões, mostra um aviso
   pedindo para mover ou excluir os cartões antes.
 
+## Wiki (`wiki.html` + `novo-wiki-artigo.html` + `novo-wiki-grupo.html`)
+
+Base de conhecimento técnico da Área Técnica — artigos de solução para
+problemas recorrentes (ex.: "alinhamento de câmera", "PSN", "teflon",
+"SignMaster"), organizados por grupo.
+
+- **Lista** (`wiki.html`): busca por palavra-chave no título/conteúdo do
+  artigo, filtro por grupo, botões **"Nova Wiki"** e **"Novo Grupo"**.
+- **Criação de artigo** (`novo-wiki-artigo.html`): título, conteúdo e grupo
+  (`GET/POST /api/wiki`). Não existe tela de edição nem `GET` por id — só
+  criação e listagem.
+- **Criação de grupo** (`novo-wiki-grupo.html`): cadastro simples de grupo
+  (`GET/POST /api/wiki-grupos`), mesmo padrão de Grupos de Produtos.
+- Repositórios: `src/data/wikiRepository.js` e `src/data/wikiGruposRepository.js`.
+
+## HelpDesk (`helpdesk.html`)
+
+Chat interno com clientes, acessado pelo menu Área Técnica em uma **nova
+aba** (`target="_blank"`, diferente do restante do menu).
+
+- Lista de conversas (`GET /api/helpdesk/conversas`) com status
+  (aberta/encerrada) e prévia da última mensagem.
+- Ao abrir uma conversa, carrega a thread completa de mensagens, cada uma com
+  autor `cliente` ou `atendente`. Enviar uma mensagem nova
+  (`POST /api/helpdesk/conversas/:id/mensagens`) sempre grava com autor fixo
+  `atendente` — não há troca de atendente real, é o único usuário logado do
+  protótipo.
+- Repositório: `src/data/helpdeskRepository.js`.
+
 ## Requisições (`requisicoes.html` + `nova-requisicao.html`)
 
 Módulo do ícone de carrinho (Vendas) da sidebar, separado da Área Técnica.
@@ -374,7 +437,7 @@ usado no Laboratório, diferente do resto do protótipo.
 server.js                          # Express app + servidor estático
 src/
   data/
-    supabaseClient.js               # client Supabase compartilhado (SUPABASE_URL/ANON_KEY do .env)
+    supabaseClient.js               # client Supabase compartilhado (SUPABASE_URL/SERVICE_ROLE_KEY do .env)
     atendimentosRepository.js       # atendimentos — tabela `atendimentos`
     clientesRepository.js           # clientes — tabela `clientes`
     catalogoRepository.js           # catálogo de equipamentos/modelos/WMS — tabelas `catalogo_*`
@@ -383,6 +446,11 @@ src/
     requisicoesRepository.js        # requisições — tabela `requisicoes`
     tecnicosRepository.js           # técnicos internos — tabela `tecnicos`
     tecnicosTerceirizadosRepository.js  # técnicos terceirizados — tabela `tecnicos_terceirizados`
+    produtosRepository.js           # produtos — tabela `produtos`
+    gruposProdutoRepository.js      # grupos de produto — tabela `grupos_produto`
+    wikiRepository.js               # artigos da wiki — tabela `wiki_artigos`
+    wikiGruposRepository.js         # grupos da wiki — tabela `wiki_grupos`
+    helpdeskRepository.js           # conversas/mensagens — tabelas `helpdesk_conversas`/`helpdesk_mensagens`
   services/
     dashboardService.js            # agregações (resumo mensal, ranking por técnico)
   routes/
@@ -391,18 +459,26 @@ public/
   styles.css                        # estilos compartilhados (sidebar, cards, tabelas, tema claro/escuro)
   login.html, login.css, login.js    # tela de login (proteção de demonstração)
   index.html, app.js                 # Dashboard de métricas
-  atendimentos.html, atendimentos.css, atendimentos.js   # lista de atendimentos (abas Remoto/Presencial)
+  atendimentos.html, atendimentos.css, atendimentos.js   # lista de atendimentos (abas Remoto/Presencial/Laboratório)
   novo-atendimento.html, atendimento-form.css, atendimento-form.js   # fluxo de criação/edição
   imprimir.html                      # documento de impressão/PDF
   instalacoes.html, instalacoes.css, instalacoes.js   # lista de instalações
   instalacao-detalhes.html, instalacao-detalhes.js    # detalhe + checklist de aprovação
   laboratorio.html, laboratorio.css, laboratorio.js   # quadro Kanban de manutenção
+  wiki.html, wiki.css, wiki.js                        # base de conhecimento técnico
+  novo-wiki-artigo.html, novo-wiki-artigo.css, novo-wiki-artigo.js   # criação de artigo da wiki
+  novo-wiki-grupo.html, novo-wiki-grupo.css, novo-wiki-grupo.js      # criação de grupo da wiki
+  helpdesk.html, helpdesk.css, helpdesk.js            # chat interno com clientes
   requisicoes.html, requisicoes.css, requisicoes.js   # lista de requisições (módulo Vendas)
   nova-requisicao.html, nova-requisicao.css, nova-requisicao.js   # criação/consulta de requisição
   clientes.html, clientes.css, clientes.js            # lista de clientes (módulo Cadastro)
   novo-cliente.html, novo-cliente.css, novo-cliente.js   # criação de cliente
   tecnicos-terceirizados.html, tecnicos-terceirizados.css, tecnicos-terceirizados.js   # lista de técnicos terceirizados
   novo-tecnico-terceirizado.html, novo-tecnico-terceirizado.css, novo-tecnico-terceirizado.js   # criação de técnico terceirizado
+  produtos.html, produtos.css, produtos.js            # lista de produtos (módulo Cadastro)
+  novo-produto.html, novo-produto.css, novo-produto.js   # criação/edição de produto
+  grupos-produto.html, grupos-produto.css, grupos-produto.js   # lista de grupos de produto
+  novo-grupo-produto.html, novo-grupo-produto.css, novo-grupo-produto.js   # criação de grupo de produto
 ```
 
 ## Como integrar no ERP real
@@ -445,28 +521,9 @@ ao modelo escolhido, `ida`/`volta` no formato `datetime-local`
 
 ### Sobre o status "Cancelado"
 
-A tela atual do ERP (calendário da Área Técnica) só distingue visualmente
-"Finalizado" e "Atendimento" — mas o preenchimento manual (menu de ações
-"⋮" no card do atendimento) já permite marcar como **Concluído** ou
-**Cancelado**. Sugerimos consolidar esses 3 estados em uma única coluna
-`status` no banco (`Em Atendimento` = aberto, `Concluido` = finalizado,
-`Cancelado`), em vez de inferir o status a partir de campos separados.
-
-Sugestão de schema SQL (adaptar ao banco já usado pelo ERP):
-
-```sql
-CREATE TABLE atendimentos_tecnicos (
-  id            INT PRIMARY KEY AUTO_INCREMENT,
-  numero        VARCHAR(20) NOT NULL UNIQUE,
-  dt_emissao    DATE NOT NULL,
-  cliente_id    INT NOT NULL,
-  defeito       TEXT,
-  tecnico_id    INT,
-  tipo          ENUM('Remoto', 'Presencial') NOT NULL,
-  status        ENUM('Em Atendimento', 'Concluido', 'Cancelado') NOT NULL DEFAULT 'Em Atendimento',
-  created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (cliente_id) REFERENCES clientes(id),
-  FOREIGN KEY (tecnico_id) REFERENCES tecnicos(id)
-);
-```
+**Já implementado** (era uma sugestão nesta seção, hoje reflete o schema
+real): os 3 estados — `Em Atendimento` (aberto), `Concluido` e `Cancelado` —
+estão consolidados numa única coluna `status` na tabela `atendimentos`
+(`supabase/schema.sql`, com `check` constraint), em vez de inferidos a partir
+de campos separados. Ver definição completa da tabela em
+`supabase/schema.sql`.

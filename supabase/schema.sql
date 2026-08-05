@@ -193,9 +193,11 @@ create table if not exists helpdesk_mensagens (
 
 -- =========================================================
 -- ROW LEVEL SECURITY
--- Protótipo interno sem Supabase Auth: libera leitura/escrita para a
--- chave anon, para o front-end estático poder falar direto com o banco.
--- Não use este modelo de policy em produção com dados sensíveis reais.
+-- O front-end fala só com o servidor Express (nunca direto com o Supabase),
+-- e o servidor usa a service_role key, que sempre ignora RLS. Por isso
+-- nenhuma policy é criada para anon/authenticated: RLS habilitada + zero
+-- policy = acesso negado por padrão para qualquer chave que não seja a
+-- service_role. Ver src/data/supabaseClient.js.
 -- =========================================================
 
 do $$
@@ -213,10 +215,6 @@ begin
   loop
     execute format('alter table %I enable row level security;', t);
     execute format('drop policy if exists anon_all on %I;', t);
-    execute format(
-      'create policy anon_all on %I for all to anon, authenticated using (true) with check (true);',
-      t
-    );
   end loop;
 end $$;
 
