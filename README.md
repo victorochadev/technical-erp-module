@@ -48,7 +48,8 @@ Telas no protótipo, navegáveis pelo menu lateral:
 - `helpdesk.html` — **HelpDesk**, chat interno com clientes (Área Técnica)
 - `requisicoes.html` — **Requisições** (módulo Vendas)
 - `clientes.html`, `tecnicos-terceirizados.html` — **Cadastro**: Clientes e Técnicos Terceirizados
-- `produtos.html`, `grupos-produto.html` — **Cadastro**: Produtos e Grupos de Produtos
+- `produtos.html` — **Cadastro**: Produtos
+- `/app/grupos-produto` — **Cadastro**: Grupos de Produtos (primeiro módulo migrado para React + TypeScript, ver seção "Migração para React + TypeScript" abaixo)
 - `wms.html`, `funcionarios.html`, `cargos-salarios.html` — **Cadastro**: WMS, Funcionários e Cargos e Salários
 
 ## Banco de dados (Supabase)
@@ -164,7 +165,7 @@ que verifica essa flag e redireciona para `login.html` se não estiver
 presente. Para trocar a credencial, edite as constantes `USUARIO_VALIDO` e
 `SENHA_VALIDA` no topo de `login.js`.
 
-## Cadastro (`clientes.html`, `tecnicos-terceirizados.html`, `produtos.html`, `grupos-produto.html`, `wms.html`, `funcionarios.html`, `cargos-salarios.html`)
+## Cadastro (`clientes.html`, `tecnicos-terceirizados.html`, `produtos.html`, `/app/grupos-produto`, `wms.html`, `funcionarios.html`, `cargos-salarios.html`)
 
 Ícone de crachá da sidebar, com sete submódulos — listas simples (busca +
 botão "+"), seguindo o mesmo padrão visual das outras telas:
@@ -191,11 +192,14 @@ botão "+"), seguindo o mesmo padrão visual das outras telas:
   `DELETE /api/produtos/:id` (mesmo padrão de confirmação de Clientes) — como
   `wms_unidades.produto_id` tem `on delete cascade`, excluir um produto
   apaga silenciosamente as unidades WMS vinculadas a ele.
-- **Grupos de Produtos** (`grupos-produto.html` + `novo-grupo-produto.html`):
-  cadastro simples (só nome), `POST`/`PUT /api/grupos-produto`. **Nota:** os
-  campos grupo 1/2 de Produtos hoje não referenciam esta tabela por FK — são
-  texto livre, então cadastrar um grupo aqui não aparece automaticamente como
-  opção estruturada no formulário de Produtos.
+- **Grupos de Produtos** (`/app/grupos-produto`, `/app/grupos-produto/novo`,
+  `/app/grupos-produto/:id/editar`): cadastro simples (só nome),
+  `POST`/`PUT /api/grupos-produto`. **Primeiro módulo migrado para React +
+  TypeScript** — ver seção "Migração para React + TypeScript" mais abaixo
+  para o padrão a seguir nos próximos módulos. **Nota:** os campos grupo 1/2
+  de Produtos hoje não referenciam esta tabela por FK — são texto livre,
+  então cadastrar um grupo aqui não aparece automaticamente como opção
+  estruturada no formulário de Produtos.
 - **WMS** (`wms.html` + `novo-wms.html`): rastreamento de números de série por
   lote de produto — não é um cadastro de campos livres. A lista
   (`wms.html`) agrupa por Produto + Lote (Produto, Lote, Quantidade, Números
@@ -569,8 +573,6 @@ public/
   novo-tecnico-terceirizado.html, novo-tecnico-terceirizado.css, novo-tecnico-terceirizado.js   # criação de técnico terceirizado
   produtos.html, produtos.css, produtos.js            # lista de produtos (módulo Cadastro)
   novo-produto.html, novo-produto.css, novo-produto.js   # criação/edição de produto
-  grupos-produto.html, grupos-produto.css, grupos-produto.js   # lista de grupos de produto
-  novo-grupo-produto.html, novo-grupo-produto.css, novo-grupo-produto.js   # criação de grupo de produto
   wms.html, wms.css, wms.js                           # rastreamento de números de série por lote
   novo-wms.html, novo-wms.js                          # registro de novo lote WMS
   funcionarios.html, funcionarios.css, funcionarios.js   # lista de funcionários
@@ -579,7 +581,97 @@ public/
   novo-cargo-salario.html, novo-cargo-salario.css, novo-cargo-salario.js   # criação/edição de cargo
   jetia-config.js, jetia-widget.js                    # widget de pergunta em linguagem natural (JET-IA)
   sheets-config.js, sheets-source.js                  # dashboards por categoria alimentados por Google Sheets
+  app/                                # saída de build do Vite (gitignored, ver seção React abaixo)
+web/                                  # código-fonte do app React + TypeScript (ver seção abaixo)
+  index.html
+  vite.config.ts
+  tsconfig.json
+  src/
+    main.tsx, App.tsx
+    styles.css                        # re-exporta public/styles.css (@import)
+    types.ts                          # tipos TS dos payloads da API
+    api.ts                            # client fetch tipado
+    components/
+      Sidebar.tsx, Header.tsx, RequireAuth.tsx, Toast.tsx, RowActionsMenu.tsx
+    routes/
+      GruposProduto/
+        Lista.tsx, Formulario.tsx, icon.tsx
 ```
+
+## Migração para React + TypeScript
+
+Decisão tomada com o Erick (2026-08-05): sair do HTML estático + JS vanilla
+para **React + TypeScript**, migrando **tela por tela** — o app continua
+funcionando o tempo todo durante a transição; módulos ainda não migrados
+seguem em HTML/JS puro até que chegue a vez deles. **Grupos de Produtos** é
+o primeiro módulo migrado, e serve de receita para os próximos.
+
+### Onde fica o código novo
+
+- `web/` — código-fonte TypeScript/React (Vite + `react-router-dom`),
+  separado de `src/` (backend Express) e de `public/` (páginas ainda não
+  migradas). Ver árvore completa na seção "Estrutura" acima.
+- Build de produção sai em `public/app/` (gitignored) — dentro da pasta que
+  o Express já serve via `express.static`, então nenhuma mudança nessa
+  linha do servidor foi necessária.
+- `server.js` ganhou uma rota de fallback SPA (`app.get('/app/*', ...)`)
+  depois do `express.static`: qualquer deep-link/refresh em `/app/...` serve
+  o `index.html` do React, e o `react-router-dom` assume o roteamento no
+  cliente.
+
+### Como rodar em desenvolvimento
+
+Dois processos em paralelo:
+
+```bash
+npm run dev       # Express na porta 3300
+npm run dev:web   # Vite na porta 5173, com proxy de /api pro Express
+```
+
+Acesse `http://localhost:5173/app/grupos-produto` (o Vite respeita o
+`base: '/app/'` também em dev, pra ficar consistente com produção).
+
+### Como buildar para produção
+
+```bash
+npm run build:web   # gera public/app/
+npm start           # só Express, serve tudo (páginas antigas + app React)
+```
+
+Acesse `http://localhost:3300/app/grupos-produto`.
+
+### O padrão de migração por módulo (receita)
+
+Grupos de Produtos seguiu estes passos — repita para o próximo módulo:
+
+1. Ler o HTML/JS/CSS atuais do módulo pra entender campos, rotas de API e
+   comportamento exato (toasts, validações, menu de ações) antes de portar.
+2. Tipos em `web/src/types.ts` e funções de API tipadas em `web/src/api.ts`
+   (fetch simples — sem React Query/Redux, hooks bastam pro tamanho atual).
+3. Componentes de tela em `web/src/routes/<Modulo>/` reaproveitando
+   `<Sidebar>`, `<Header>`, `<RowActionsMenu>` e `useToast()` de
+   `web/src/components/` — não recrie sidebar/header/menu de ações do zero.
+4. Registrar as rotas novas em `web/src/App.tsx`.
+5. No `<Sidebar>` (`web/src/components/Sidebar.tsx`), trocar o `<a href="...">`
+   do módulo migrado por um `<Link to="...">`, e adicionar o novo id ao tipo
+   `ItemAtivo`.
+6. Atualizar o link correspondente do sidebar nas páginas HTML que **ainda
+   não** migraram (sed em lote, já que o bloco do sidebar é idêntico entre
+   arquivos — ex.: `sed -i '' 's|href="X.html"|href="/app/X"|' *.html`).
+7. Remover os arquivos `.html`/`.js`/`.css` antigos do módulo — não ficam
+   paralelos ao React (mesma lição do `api-shim.js`: duas implementações da
+   mesma lógica divergem silenciosamente).
+8. Testar: dev (Vite + Express), build de produção servido só pelo Express,
+   deep-link/refresh numa rota do módulo, e que as páginas ainda estáticas
+   continuam navegando corretamente para o módulo migrado.
+
+### Módulos já migrados
+
+- [x] Grupos de Produtos (`/app/grupos-produto`)
+
+Todos os demais continuam em HTML/JS (Atendimentos, Dashboard, Instalações,
+Laboratório, JET-IA, HelpDesk, Requisições, Clientes, Técnicos
+Terceirizados, Produtos, WMS, Funcionários, Cargos e Salários).
 
 ## Como integrar no ERP real
 

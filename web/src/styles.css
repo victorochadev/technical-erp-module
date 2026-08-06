@@ -1,0 +1,77 @@
+@import '../../public/styles.css';
+
+/*
+ * Os estilos abaixo (toolbar de lista, botão flutuante "+", menu de ações
+ * da linha, botões e toast) são padrões usados por praticamente todas as
+ * telas de lista/formulário do protótipo — hoje duplicados em cada arquivo
+ * <modulo>.css (ex.: clientes.css, produtos.css). Centralizados aqui pro
+ * app React porque todo módulo migrado vai precisar deles; ver
+ * git log -- public/grupos-produto.css / novo-grupo-produto.css se
+ * precisar conferir a origem exata.
+ */
+
+.list-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+
+.btn-fab {
+  width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--presencial);
+  color: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; box-shadow: var(--shadow);
+  display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0;
+}
+.btn-fab:hover { filter: brightness(1.08); }
+
+.row-actions { position: relative; }
+.row-actions__toggle {
+  width: 30px; height: 30px; border-radius: 6px; border: none; background: none;
+  color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.row-actions__toggle:hover { background: var(--bg-surface); color: var(--text-primary); }
+.row-actions__toggle svg { width: 18px; height: 18px; }
+.row-actions__menu {
+  position: absolute; right: 0; top: calc(100% + 4px); z-index: 60;
+  background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow); min-width: 100px; overflow: hidden;
+}
+.row-actions__item {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 14px; border: none;
+  background: none; text-align: left; font-size: 0.82rem; font-weight: 600; color: var(--text-secondary);
+  cursor: pointer; font-family: var(--font); text-decoration: none;
+}
+.row-actions__item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.row-actions__item:hover { background: var(--bg-surface); color: var(--text-primary); }
+
+.main--form { gap: 20px; }
+
+.field-label { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.02em; }
+.field-input {
+  background: var(--bg-input); border: 1px solid var(--border-default); border-radius: var(--radius-sm);
+  color: var(--text-primary); padding: 10px 12px; font-size: 0.9rem; font-family: var(--font); width: 100%;
+}
+.field-block { display: flex; flex-direction: column; gap: 10px; }
+.form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.field-block--wide { grid-column: span 3; }
+
+.btn {
+  border: none; border-radius: 999px; padding: 9px 20px; font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; font-family: var(--font); display: inline-flex; align-items: center; gap: 6px;
+}
+.btn--primary { background: var(--remoto); color: #fff; }
+.btn--lg { padding: 12px 32px; font-size: 0.9rem; }
+.btn:hover { filter: brightness(1.08); }
+.btn svg { width: 16px; height: 16px; }
+
+.form-footer { display: flex; justify-content: flex-end; padding-bottom: 20px; }
+
+.toast-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 999; }
+.toast-simple {
+  background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 12px 18px; font-size: 0.85rem; color: var(--text-primary);
+  opacity: 0; transform: translateY(8px); transition: all 0.2s ease;
+}
+.toast-simple--show { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 768px) {
+  .list-toolbar { flex-wrap: wrap; }
+  .list-toolbar .search-input { width: 100%; }
+  .form-grid { grid-template-columns: 1fr; }
+  .field-block--wide { grid-column: span 1; }
+}
