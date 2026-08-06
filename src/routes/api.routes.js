@@ -16,6 +16,8 @@ const helpdeskRepo = require('../data/helpdeskRepository')
 const funcionariosRepo = require('../data/funcionariosRepository')
 const cargosSalariosRepo = require('../data/cargosSalariosRepository')
 const wmsRepo = require('../data/wmsRepository')
+const veiculosRepo = require('../data/veiculosRepository')
+const frotaViagensRepo = require('../data/frotaViagensRepository')
 
 const router = express.Router()
 
@@ -304,6 +306,48 @@ router.put('/cargos-salarios/:id', async (req, res) => {
   const cargo = await cargosSalariosRepo.atualizarCargoSalario(req.params.id, req.body)
   if (!cargo) return res.status(404).json({ erro: 'Cargo não encontrado' })
   res.json(cargo)
+})
+
+router.get('/veiculos', async (req, res) => {
+  res.json(await veiculosRepo.listVeiculos({ busca: req.query.busca }))
+})
+
+router.post('/veiculos', async (req, res) => {
+  const veiculo = await veiculosRepo.criarVeiculo(req.body)
+  res.status(201).json(veiculo)
+})
+
+router.get('/veiculos/:id', async (req, res) => {
+  const veiculo = await veiculosRepo.buscarVeiculoPorId(req.params.id)
+  if (!veiculo) return res.status(404).json({ erro: 'Veículo não encontrado' })
+  res.json(veiculo)
+})
+
+router.put('/veiculos/:id', async (req, res) => {
+  const veiculo = await veiculosRepo.atualizarVeiculo(req.params.id, req.body)
+  if (!veiculo) return res.status(404).json({ erro: 'Veículo não encontrado' })
+  res.json(veiculo)
+})
+
+router.get('/frota-viagens', async (req, res) => {
+  res.json(await frotaViagensRepo.listFrotaViagens({ busca: req.query.busca, veiculoId: req.query.veiculoId }))
+})
+
+router.post('/frota-viagens', async (req, res) => {
+  const viagem = await frotaViagensRepo.criarFrotaViagem(req.body)
+  res.status(201).json(viagem)
+})
+
+router.get('/frota-viagens/:id', async (req, res) => {
+  const viagem = await frotaViagensRepo.buscarFrotaViagemPorId(req.params.id)
+  if (!viagem) return res.status(404).json({ erro: 'Viagem não encontrada' })
+  res.json(viagem)
+})
+
+router.put('/frota-viagens/:id', async (req, res) => {
+  const viagem = await frotaViagensRepo.atualizarFrotaViagem(req.params.id, req.body)
+  if (!viagem) return res.status(404).json({ erro: 'Viagem não encontrada' })
+  res.json(viagem)
 })
 
 router.get('/helpdesk/conversas', async (req, res) => {
