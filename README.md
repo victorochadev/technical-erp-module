@@ -51,6 +51,7 @@ Telas no protótipo, navegáveis pelo menu lateral:
 - `produtos.html` — **Cadastro**: Produtos
 - `/app/grupos-produto` — **Cadastro**: Grupos de Produtos (primeiro módulo migrado para React + TypeScript, ver seção "Migração para React + TypeScript" abaixo)
 - `wms.html`, `funcionarios.html`, `cargos-salarios.html` — **Cadastro**: WMS, Funcionários e Cargos e Salários
+- `/app/frota/veiculos`, `/app/frota/viagens` — **Cadastro**: Controle de Frota (Veículos e Viagens de Frota, ver seção própria abaixo — nasceu direto em React + TypeScript)
 
 ## Banco de dados (Supabase)
 
@@ -216,6 +217,34 @@ botão "+"), seguindo o mesmo padrão visual das outras telas:
   Nome do Cargo (único) e Salário Base. CRUD via
   `GET/POST/PUT /api/cargos-salarios` — **sem exclusão**, mesmo padrão de
   Funcionários.
+
+## Controle de Frota (`/app/frota/veiculos`, `/app/frota/viagens`)
+
+Cadastro dos veículos da empresa e registro de uso (viagens) por técnico —
+nasceu direto em React + TypeScript, sem passar por HTML/JS (não havia
+nenhuma versão anterior no protótipo). O modelo de dados mescla ideias de
+dois repositórios de referência analisados antes da implementação
+(`sistema-controle-de-frota` e `ex3_controleFrota`), adaptadas ao padrão já
+usado no resto do protótipo:
+
+- **Veículos** (`/app/frota/veiculos`): placa, marca, modelo, ano, categoria,
+  combustível e km atual. Tem também **manutenção preventiva por
+  quilometragem** (km previsto, data prevista, descrição) — a lista destaca
+  com um chip **"Pendente"** qualquer veículo cujo km atual já alcançou o km
+  previsto da manutenção (`manutencaoPendente`, calculado no
+  `veiculosRepository.js`, mesmo espírito do SLA calculado do Laboratório).
+- **Viagens de Frota** (`/app/frota/viagens`): registra a saída (veículo,
+  técnico — reaproveita o mesmo cadastro de técnicos usado em
+  Atendimentos/Laboratório, sem CPF/CNH próprio —, finalidade, km e
+  data/hora de saída) e depois a chegada (km e data/hora), com o km rodado
+  calculado na leitura (`kmChegada - kmSaida`, nunca armazenado). Ao
+  registrar a chegada, o `km_atual` do veículo é atualizado automaticamente
+  para o novo valor do hodômetro. Tem um campo opcional de **Atendimento
+  Vinculado**, com autocomplete sobre `GET /api/atendimentos?busca=` (mesmo
+  padrão usado em Requisições), para registrar quando a viagem foi para
+  atender um chamado específico.
+- Tabelas `veiculos` e `frota_viagens` em `supabase/schema.sql`. Sem
+  exclusão pela UI (mesmo tratamento de Funcionários/Cargos e Salários).
 
 ## Atendimentos (`atendimentos.html`)
 
@@ -547,6 +576,8 @@ src/
     wmsRepository.js                # rastreamento de números de série — tabela `wms_unidades`
     funcionariosRepository.js       # funcionários — tabela `funcionarios`
     cargosSalariosRepository.js     # cargos e salários — tabela `cargos_salarios`
+    veiculosRepository.js           # veículos da frota — tabela `veiculos`
+    frotaViagensRepository.js       # viagens/uso de veículo — tabela `frota_viagens`
   services/
     dashboardService.js            # agregações (resumo mensal, ranking por técnico)
   routes/
@@ -596,6 +627,11 @@ web/                                  # código-fonte do app React + TypeScript 
     routes/
       GruposProduto/
         Lista.tsx, Formulario.tsx, icon.tsx
+      Frota/
+        Veiculos/
+          Lista.tsx, Formulario.tsx, icon.tsx
+        Viagens/
+          Lista.tsx, Formulario.tsx, icon.tsx
 ```
 
 ## Migração para React + TypeScript
@@ -668,6 +704,9 @@ Grupos de Produtos seguiu estes passos — repita para o próximo módulo:
 ### Módulos já migrados
 
 - [x] Grupos de Produtos (`/app/grupos-produto`)
+- [x] Controle de Frota — Veículos (`/app/frota/veiculos`) e Viagens de Frota
+  (`/app/frota/viagens`) — nasceu direto em React, sem versão HTML/JS
+  anterior (ver seção "Controle de Frota" acima)
 
 Todos os demais continuam em HTML/JS (Atendimentos, Dashboard, Instalações,
 Laboratório, JET-IA, HelpDesk, Requisições, Clientes, Técnicos

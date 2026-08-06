@@ -215,6 +215,36 @@ create table if not exists helpdesk_mensagens (
   created_at timestamptz not null default now()
 );
 
+create table if not exists veiculos (
+  id bigint generated always as identity primary key,
+  placa text not null unique,
+  marca text,
+  modelo text not null,
+  ano text,
+  categoria text,
+  combustivel text,
+  km_atual numeric(10, 1) not null default 0,
+  manutencao_km_prevista numeric(10, 1),
+  manutencao_data_prevista date,
+  manutencao_descricao text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists frota_viagens (
+  id bigint generated always as identity primary key,
+  veiculo_id bigint not null references veiculos(id),
+  tecnico_id bigint references tecnicos(id),
+  tecnico_nome text,
+  atendimento_id bigint references atendimentos(id),
+  finalidade text,
+  km_saida numeric(10, 1) not null,
+  km_chegada numeric(10, 1),
+  data_saida timestamptz not null default now(),
+  data_chegada timestamptz,
+  observacoes text,
+  created_at timestamptz not null default now()
+);
+
 -- =========================================================
 -- ROW LEVEL SECURITY
 -- O front-end fala só com o servidor Express (nunca direto com o Supabase),
@@ -235,7 +265,7 @@ begin
       'atendimentos', 'instalacoes', 'laboratorio_colunas', 'laboratorio_cards',
       'requisicoes', 'produtos', 'grupos_produto', 'wiki_artigos', 'wiki_grupos',
       'helpdesk_conversas', 'helpdesk_mensagens', 'jet_ia_historico', 'jet_ia_erros',
-      'cargos_salarios', 'funcionarios', 'wms_unidades'
+      'cargos_salarios', 'funcionarios', 'wms_unidades', 'veiculos', 'frota_viagens'
     ])
   loop
     execute format('alter table %I enable row level security;', t);
