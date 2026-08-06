@@ -5,10 +5,10 @@ import { Link } from 'react-router-dom'
 // de sempre. Conforme mais módulos forem migrados, adicione o novo id aqui
 // e troque o <a href="..."> correspondente por <Link to="...">, seguindo o
 // mesmo padrão do item de Grupos de Produtos.
-type ItemAtivo = 'grupos-produto' | 'veiculos' | 'viagens-frota'
+type ItemAtivo = 'grupos-produto' | 'veiculos' | 'viagens-frota' | 'cargos-salarios'
 
 export function Sidebar({ active }: { active: ItemAtivo }) {
-  const cadastroAtivo = active === 'grupos-produto' || active === 'veiculos' || active === 'viagens-frota'
+  const cadastroAtivo = active === 'grupos-produto' || active === 'veiculos' || active === 'viagens-frota' || active === 'cargos-salarios'
 
   return (
     <nav className="sidebar" aria-label="Módulos do ERP">
@@ -45,10 +45,10 @@ export function Sidebar({ active }: { active: ItemAtivo }) {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="9" cy="7" r="3" /><path d="M2 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" /><path d="M17 3.13a4 4 0 0 1 0 7.75" /><path d="M21 21v-2a4 4 0 0 0-3-3.85" /></svg>
             Funcionários
           </a>
-          <a href="/cargos-salarios.html" className="sidebar__flyout-item">
+          <Link to="/cargos-salarios" className={`sidebar__flyout-item${active === 'cargos-salarios' ? ' sidebar__flyout-item--active' : ''}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="9" /><path d="M12 6v12" /><path d="M15.5 9.5c0-1.5-1.5-2.5-3.5-2.5s-3.5 1-3.5 2.5c0 1.5 1.5 2 3.5 2.5s3.5 1 3.5 2.5-1.5 2.5-3.5 2.5-3.5-1-3.5-2.5" /></svg>
             Cargos e Salários
-          </a>
+          </Link>
           <Link to="/frota/veiculos" className={`sidebar__flyout-item${active === 'veiculos' ? ' sidebar__flyout-item--active' : ''}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M3 17h1a2 2 0 0 0 4 0h8a2 2 0 0 0 4 0h1v-5l-2-4h-4l-2-3H7L4 9H3z" /><path d="M14 8v4" /><circle cx="7.5" cy="17" r="1.8" /><circle cx="16.5" cy="17" r="1.8" /></svg>
             Veículos

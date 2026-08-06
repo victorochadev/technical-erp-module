@@ -41,3 +41,9 @@ export interface AtendimentoResumo {
   cliente: string
   defeito: string
 }
+
+export interface CargoSalario {
+  id: number
+  nome: string
+  salarioBase: number
+}
