@@ -50,7 +50,8 @@ Telas no protótipo, navegáveis pelo menu lateral:
 - `clientes.html`, `tecnicos-terceirizados.html` — **Cadastro**: Clientes e Técnicos Terceirizados
 - `produtos.html` — **Cadastro**: Produtos
 - `/app/grupos-produto` — **Cadastro**: Grupos de Produtos (primeiro módulo migrado para React + TypeScript, ver seção "Migração para React + TypeScript" abaixo)
-- `wms.html`, `funcionarios.html`, `cargos-salarios.html` — **Cadastro**: WMS, Funcionários e Cargos e Salários
+- `wms.html`, `funcionarios.html` — **Cadastro**: WMS e Funcionários
+- `/app/cargos-salarios` — **Cadastro**: Cargos e Salários (migrado para React + TypeScript)
 - `/app/frota/veiculos`, `/app/frota/viagens` — **Cadastro**: Controle de Frota (Veículos e Viagens de Frota, ver seção própria abaixo — nasceu direto em React + TypeScript)
 
 ## Banco de dados (Supabase)
@@ -166,7 +167,7 @@ que verifica essa flag e redireciona para `login.html` se não estiver
 presente. Para trocar a credencial, edite as constantes `USUARIO_VALIDO` e
 `SENHA_VALIDA` no topo de `login.js`.
 
-## Cadastro (`clientes.html`, `tecnicos-terceirizados.html`, `produtos.html`, `/app/grupos-produto`, `wms.html`, `funcionarios.html`, `cargos-salarios.html`)
+## Cadastro (`clientes.html`, `tecnicos-terceirizados.html`, `produtos.html`, `/app/grupos-produto`, `wms.html`, `funcionarios.html`, `/app/cargos-salarios`)
 
 Ícone de crachá da sidebar, com sete submódulos — listas simples (busca +
 botão "+"), seguindo o mesmo padrão visual das outras telas:
@@ -213,10 +214,12 @@ botão "+"), seguindo o mesmo padrão visual das outras telas:
   Cargo (combobox pesquisável alimentado por Cargos e Salários, mas
   armazenado como texto solto — sem FK), Telefone, E-mail. CRUD via
   `GET/POST/PUT /api/funcionarios` — **sem exclusão** (nem botão, nem rota).
-- **Cargos e Salários** (`cargos-salarios.html` + `novo-cargo-salario.html`):
-  Nome do Cargo (único) e Salário Base. CRUD via
-  `GET/POST/PUT /api/cargos-salarios` — **sem exclusão**, mesmo padrão de
-  Funcionários.
+- **Cargos e Salários** (`/app/cargos-salarios`, `/app/cargos-salarios/novo`,
+  `/app/cargos-salarios/:id/editar`): Nome do Cargo (único) e Salário Base.
+  CRUD via `GET/POST/PUT /api/cargos-salarios` — **sem exclusão**, mesmo
+  padrão de Funcionários. Segundo módulo migrado para React + TypeScript
+  (depois de Grupos de Produtos e do Controle de Frota), seguindo a receita
+  do README.
 
 ## Controle de Frota (`/app/frota/veiculos`, `/app/frota/viagens`)
 
@@ -608,8 +611,6 @@ public/
   novo-wms.html, novo-wms.js                          # registro de novo lote WMS
   funcionarios.html, funcionarios.css, funcionarios.js   # lista de funcionários
   novo-funcionario.html, novo-funcionario.css, novo-funcionario.js   # criação/edição de funcionário
-  cargos-salarios.html, cargos-salarios.css, cargos-salarios.js   # lista de cargos e salários
-  novo-cargo-salario.html, novo-cargo-salario.css, novo-cargo-salario.js   # criação/edição de cargo
   jetia-config.js, jetia-widget.js                    # widget de pergunta em linguagem natural (JET-IA)
   sheets-config.js, sheets-source.js                  # dashboards por categoria alimentados por Google Sheets
   app/                                # saída de build do Vite (gitignored, ver seção React abaixo)
@@ -632,6 +633,8 @@ web/                                  # código-fonte do app React + TypeScript 
           Lista.tsx, Formulario.tsx, icon.tsx
         Viagens/
           Lista.tsx, Formulario.tsx, icon.tsx
+      CargosSalarios/
+        Lista.tsx, Formulario.tsx, icon.tsx
 ```
 
 ## Migração para React + TypeScript
@@ -707,10 +710,11 @@ Grupos de Produtos seguiu estes passos — repita para o próximo módulo:
 - [x] Controle de Frota — Veículos (`/app/frota/veiculos`) e Viagens de Frota
   (`/app/frota/viagens`) — nasceu direto em React, sem versão HTML/JS
   anterior (ver seção "Controle de Frota" acima)
+- [x] Cargos e Salários (`/app/cargos-salarios`)
 
 Todos os demais continuam em HTML/JS (Atendimentos, Dashboard, Instalações,
 Laboratório, JET-IA, HelpDesk, Requisições, Clientes, Técnicos
-Terceirizados, Produtos, WMS, Funcionários, Cargos e Salários).
+Terceirizados, Produtos, WMS, Funcionários).
 
 ## Como integrar no ERP real
 

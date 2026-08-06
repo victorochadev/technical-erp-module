@@ -6,6 +6,8 @@ import { VeiculosLista } from './routes/Frota/Veiculos/Lista'
 import { VeiculosFormulario } from './routes/Frota/Veiculos/Formulario'
 import { ViagensLista } from './routes/Frota/Viagens/Lista'
 import { ViagensFormulario } from './routes/Frota/Viagens/Formulario'
+import { CargosSalariosLista } from './routes/CargosSalarios/Lista'
+import { CargosSalariosFormulario } from './routes/CargosSalarios/Formulario'
 
 export function App() {
   return (
@@ -22,6 +24,9 @@ export function App() {
           <Route path="/frota/viagens" element={<ViagensLista />} />
           <Route path="/frota/viagens/novo" element={<ViagensFormulario />} />
           <Route path="/frota/viagens/:id/editar" element={<ViagensFormulario />} />
+          <Route path="/cargos-salarios" element={<CargosSalariosLista />} />
+          <Route path="/cargos-salarios/novo" element={<CargosSalariosFormulario />} />
+          <Route path="/cargos-salarios/:id/editar" element={<CargosSalariosFormulario />} />
         </Routes>
       </RequireAuth>
     </BrowserRouter>

@@ -1,4 +1,4 @@
-import type { AtendimentoResumo, FrotaViagem, GrupoProduto, Veiculo } from './types'
+import type { AtendimentoResumo, CargoSalario, FrotaViagem, GrupoProduto, Veiculo } from './types'
 
 async function json<T>(res: Response): Promise<T> {
   if (!res.ok) throw new Error(`Requisição falhou (${res.status})`)
@@ -85,4 +85,20 @@ export function criarFrotaViagem(dados: Partial<FrotaViagem>): Promise<FrotaViag
 
 export function atualizarFrotaViagem(id: string, dados: Partial<FrotaViagem>): Promise<FrotaViagem> {
   return putJson(`/api/frota-viagens/${id}`, dados)
+}
+
+export function listarCargosSalarios(): Promise<CargoSalario[]> {
+  return fetch('/api/cargos-salarios').then(res => json<CargoSalario[]>(res))
+}
+
+export function buscarCargoSalario(id: string): Promise<CargoSalario> {
+  return fetch(`/api/cargos-salarios/${id}`).then(res => json<CargoSalario>(res))
+}
+
+export function criarCargoSalario(dados: { nome: string; salarioBase: number }): Promise<CargoSalario> {
+  return postJson('/api/cargos-salarios', dados)
+}
+
+export function atualizarCargoSalario(id: string, dados: { nome: string; salarioBase: number }): Promise<CargoSalario> {
+  return putJson(`/api/cargos-salarios/${id}`, dados)
 }
